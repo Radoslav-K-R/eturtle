@@ -1,0 +1,32 @@
+<div class="depot-form">
+  <a routerLink="/depots" class="depot-form__back">&larr; Back</a>
+  <h2>New Depot</h2>
+
+  @if (errorMessage) {
+    <div class="depot-form__error">{{ errorMessage }}</div>
+  }
+
+  <form [formGroup]="depotForm" (ngSubmit)="onSubmit()" class="depot-form__form">
+    <div class="depot-form__field">
+      <label>Name</label>
+      <input formControlName="name" placeholder="Depot name" />
+    </div>
+    <div class="depot-form__field">
+      <label>Address</label>
+      <input formControlName="address" placeholder="Full address" />
+    </div>
+    <div class="depot-form__row">
+      <div class="depot-form__field">
+        <label>Latitude</label>
+        <input type="number" formControlName="latitude" step="0.00000001" />
+      </div>
+      <div class="depot-form__field">
+        <label>Longitude</label>
+        <input type="number" formControlName="longitude" step="0.00000001" />
+      </div>
+    </div>
+    <button type="submit" [disabled]="depotForm.invalid || isSubmitting" class="depot-form__submit">
+      {{ isSubmitting ? 'Creating...' : 'Create Depot' }}
+    </button>
+  </form>
+</div>

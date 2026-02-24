@@ -1,0 +1,31 @@
+<div class="depot-list">
+  <div class="depot-list__header">
+    <h2>Depots</h2>
+    <a routerLink="new" class="depot-list__add-button">+ Add Depot</a>
+  </div>
+
+  @if (isLoading) { <p>Loading...</p> }
+
+  <table class="depot-list__table">
+    <thead>
+      <tr>
+        <th (click)="onSort('name')" class="depot-list__th">Name</th>
+        <th class="depot-list__th">Address</th>
+        <th class="depot-list__th">Lat / Lng</th>
+        <th class="depot-list__th">Vehicles</th>
+        <th class="depot-list__th">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (depot of depots; track depot.id) {
+        <tr>
+          <td>{{ depot.name }}</td>
+          <td>{{ depot.address }}</td>
+          <td>{{ depot.latitude }}, {{ depot.longitude }}</td>
+          <td>{{ depot.vehicleCount }}</td>
+          <td><a [routerLink]="['edit', depot.id]">Edit</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
