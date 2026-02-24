@@ -1,0 +1,59 @@
+<div class="route-detail">
+  <a routerLink="/routes" class="route-detail__back">&larr; Back to Routes</a>
+
+  @if (isLoading) {
+    <p>Loading...</p>
+  }
+
+  @if (actionMessage) {
+    <div class="route-detail__message">{{ actionMessage }}</div>
+  }
+
+  @if (routeData) {
+    <div class="route-detail__header">
+      <h2>Route: {{ routeData.routeDate }}</h2>
+      <span class="route-detail__status route-detail__status--{{ routeData.status }}">
+        {{ routeData.status }}
+      </span>
+    </div>
+
+    <div class="route-detail__info">
+      <p><strong>Vehicle:</strong> {{ routeData.vehicleLicensePlate }} ({{ routeData.vehicleType }})</p>
+      <p><strong>Driver:</strong> {{ routeData.driverName }}</p>
+      <p><strong>Stops:</strong> {{ routeData.stops.length }}</p>
+      @if (routeData.approvedByUserName) {
+        <p><strong>Approved by:</strong> {{ routeData.approvedByUserName }} at {{ routeData.approvedAt | date:'medium' }}</p>
+      }
+    </div>
+
+    @if (routeData.status === 'pending') {
+      <div class="route-detail__actions">
+        <button (click)="approveRoute()" class="route-detail__approve-button">Approve Route</button>
+        <button (click)="rejectRoute()" class="route-detail__reject-button">Reject Route</button>
+      </div>
+    }
+
+    <h3>Stops</h3>
+    @for (stop of routeData.stops; track stop.id) {
+      <div class="route-detail__stop">
+        <h4>Stop {{ stop.stopOrder }}: {{ stop.depotName }}</h4>
+        @if (stop.pickupPackages.length > 0) {
+          <p class="route-detail__stop-label">Pickup:</p>
+          <ul>
+            @for (pkg of stop.pickupPackages; track pkg.id) {
+              <li>{{ pkg.trackingNumber }} &rarr; {{ pkg.destinationAddress }}</li>
+            }
+          </ul>
+        }
+        @if (stop.dropoffPackages.length > 0) {
+          <p class="route-detail__stop-label">Dropoff:</p>
+          <ul>
+            @for (pkg of stop.dropoffPackages; track pkg.id) {
+              <li>{{ pkg.trackingNumber }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  }
+</div>

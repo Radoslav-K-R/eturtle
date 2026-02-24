@@ -1,0 +1,83 @@
+@use '../../../../app/shared/styles/variables' as *;
+
+.route-detail {
+  padding: $spacing-lg;
+
+  &__back { color: $color-primary; text-decoration: none; font-size: $font-size-sm; }
+  &__message { padding: $spacing-sm $spacing-md; margin: $spacing-md 0; background-color: #e8f5e9; border-radius: $border-radius-sm; }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    margin: $spacing-md 0;
+
+    h2 { margin: 0; font-size: $font-size-xl; }
+  }
+
+  &__status {
+    padding: 2px $spacing-sm;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-xs;
+    font-weight: 500;
+    text-transform: uppercase;
+
+    &--pending { background-color: #fff3e0; color: #e65100; }
+    &--approved { background-color: #e8f5e9; color: #2e7d32; }
+    &--rejected { background-color: #fce4ec; color: #c62828; }
+  }
+
+  &__info {
+    background-color: $color-surface;
+    padding: $spacing-md;
+    border-radius: $border-radius-md;
+    box-shadow: $shadow-sm;
+    margin-bottom: $spacing-lg;
+
+    p { margin: $spacing-xs 0; font-size: $font-size-sm; }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-md;
+    margin-bottom: $spacing-lg;
+  }
+
+  &__approve-button {
+    padding: $spacing-sm $spacing-lg;
+    background-color: $color-success;
+    color: $color-text-light;
+    border: none;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    font-size: $font-size-sm;
+  }
+
+  &__reject-button {
+    padding: $spacing-sm $spacing-lg;
+    background-color: $color-warn;
+    color: $color-text-light;
+    border: none;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    font-size: $font-size-sm;
+  }
+
+  &__stop {
+    background-color: $color-surface;
+    padding: $spacing-md;
+    border-radius: $border-radius-md;
+    box-shadow: $shadow-sm;
+    margin-bottom: $spacing-sm;
+
+    h4 { margin: 0 0 $spacing-xs; font-size: $font-size-md; }
+    ul { margin: $spacing-xs 0; padding-left: $spacing-lg; }
+    li { font-size: $font-size-sm; }
+  }
+
+  &__stop-label {
+    font-size: $font-size-sm;
+    font-weight: 600;
+    margin: $spacing-xs 0 0;
+  }
+}

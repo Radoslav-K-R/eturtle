@@ -1,0 +1,57 @@
+<div class="route-list">
+  <h2 class="route-list__title">Routes</h2>
+
+  <div class="route-list__filters">
+    <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()" class="route-list__filter">
+      <option value="">All Statuses</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+      <option value="in_progress">In Progress</option>
+      <option value="completed">Completed</option>
+    </select>
+  </div>
+
+  @if (isLoading) {
+    <p class="route-list__loading">Loading...</p>
+  }
+
+  <table class="route-list__table">
+    <thead>
+      <tr>
+        <th (click)="onSort('routeDate')" class="route-list__th">Date</th>
+        <th class="route-list__th">Vehicle</th>
+        <th class="route-list__th">Driver</th>
+        <th class="route-list__th">Stops</th>
+        <th class="route-list__th">Packages</th>
+        <th (click)="onSort('status')" class="route-list__th">Status</th>
+        <th class="route-list__th">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (route of routes; track route.id) {
+        <tr>
+          <td>{{ route.routeDate }}</td>
+          <td>{{ route.vehicleLicensePlate }}</td>
+          <td>{{ route.driverName }}</td>
+          <td>{{ route.stopCount }}</td>
+          <td>{{ route.packageCount }}</td>
+          <td>
+            <span class="route-list__status route-list__status--{{ route.status }}">
+              {{ route.status }}
+            </span>
+          </td>
+          <td><a [routerLink]="[route.id]">View</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (totalPages > 1) {
+    <div class="route-list__pagination">
+      <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage <= 1">Previous</button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage >= totalPages">Next</button>
+    </div>
+  }
+</div>
