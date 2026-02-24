@@ -1,0 +1,64 @@
+@use './shared/styles/variables' as *;
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+
+  &__sidebar {
+    width: 220px;
+    background-color: #1a237e;
+    color: $color-text-light;
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-md 0;
+    flex-shrink: 0;
+  }
+
+  &__brand {
+    padding: $spacing-md $spacing-lg;
+    font-size: $font-size-xl;
+    font-weight: 700;
+    margin-bottom: $spacing-md;
+  }
+
+  &__link {
+    display: block;
+    padding: $spacing-sm $spacing-lg;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: $font-size-sm;
+    transition: all 0.2s;
+
+    &:hover {
+      color: $color-text-light;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &--active {
+      color: $color-text-light;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-left: 3px solid $color-accent;
+    }
+  }
+
+  &__logout {
+    margin-top: auto;
+    padding: $spacing-sm $spacing-lg;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: left;
+    cursor: pointer;
+    font-size: $font-size-sm;
+
+    &:hover {
+      color: $color-text-light;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    background-color: $color-background;
+    overflow-y: auto;
+  }
+}

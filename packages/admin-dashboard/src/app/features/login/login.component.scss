@@ -1,0 +1,90 @@
+@use '../../../app/shared/styles/variables' as *;
+
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: $color-background;
+
+  &__card {
+    width: 100%;
+    max-width: 400px;
+    padding: $spacing-xl;
+    background-color: $color-surface;
+    border-radius: $border-radius-md;
+    box-shadow: $shadow-md;
+  }
+
+  &__title {
+    margin: 0 0 $spacing-xs;
+    font-size: $font-size-xxl;
+    color: $color-primary;
+    text-align: center;
+  }
+
+  &__subtitle {
+    margin: 0 0 $spacing-lg;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    text-align: center;
+  }
+
+  &__error {
+    padding: $spacing-sm $spacing-md;
+    margin-bottom: $spacing-md;
+    background-color: #fce4ec;
+    color: $color-warn;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-sm;
+  }
+
+  &__field {
+    margin-bottom: $spacing-md;
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: $spacing-xs;
+    font-size: $font-size-sm;
+    font-weight: 500;
+    color: $color-text-primary;
+  }
+
+  &__input {
+    width: 100%;
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $color-border;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-md;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: $color-primary;
+    }
+  }
+
+  &__button {
+    width: 100%;
+    padding: $spacing-sm $spacing-md;
+    margin-top: $spacing-sm;
+    background-color: $color-primary;
+    color: $color-text-light;
+    border: none;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-md;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover:not(:disabled) {
+      background-color: $color-primary-dark;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}

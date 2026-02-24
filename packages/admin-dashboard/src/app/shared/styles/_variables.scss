@@ -1,0 +1,58 @@
+// Colors
+$color-primary: #1976d2;
+$color-primary-dark: #1565c0;
+$color-primary-light: #42a5f5;
+$color-accent: #ff9800;
+$color-warn: #f44336;
+$color-success: #4caf50;
+
+$color-text-primary: #212121;
+$color-text-secondary: #757575;
+$color-text-light: #ffffff;
+
+$color-background: #fafafa;
+$color-surface: #ffffff;
+$color-border: #e0e0e0;
+$color-divider: #eeeeee;
+
+// Status colors
+$color-status-registered: #9e9e9e;
+$color-status-assigned: #2196f3;
+$color-status-in-transit: #ff9800;
+$color-status-delivered: #4caf50;
+$color-status-cancelled: #f44336;
+$color-status-pending: #ffc107;
+$color-status-approved: #4caf50;
+$color-status-rejected: #f44336;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// Border radius
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+
+// Shadows
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+// Font sizes
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 20px;
+$font-size-xl: 24px;
+$font-size-xxl: 32px;
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;

@@ -1,0 +1,19 @@
+@if (authService.isAuthenticated$ | async) {
+  <div class="app-layout">
+    <nav class="app-layout__sidebar">
+      <div class="app-layout__brand">eTurtle</div>
+      <a routerLink="/dashboard" routerLinkActive="app-layout__link--active" class="app-layout__link">Dashboard</a>
+      <a routerLink="/packages" routerLinkActive="app-layout__link--active" class="app-layout__link">Packages</a>
+      <a routerLink="/routes" routerLinkActive="app-layout__link--active" class="app-layout__link">Routes</a>
+      <a routerLink="/vehicles" routerLinkActive="app-layout__link--active" class="app-layout__link">Vehicles</a>
+      <a routerLink="/depots" routerLinkActive="app-layout__link--active" class="app-layout__link">Depots</a>
+      <a routerLink="/users" routerLinkActive="app-layout__link--active" class="app-layout__link">Users</a>
+      <button (click)="logout()" class="app-layout__logout">Logout</button>
+    </nav>
+    <main class="app-layout__content">
+      <router-outlet />
+    </main>
+  </div>
+} @else {
+  <router-outlet />
+}

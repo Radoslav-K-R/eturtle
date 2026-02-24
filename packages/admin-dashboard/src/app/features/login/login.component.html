@@ -1,0 +1,42 @@
+<div class="login">
+  <div class="login__card">
+    <h1 class="login__title">eTurtle Admin</h1>
+    <p class="login__subtitle">Delivery Management System</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login__form">
+      @if (errorMessage) {
+        <div class="login__error">{{ errorMessage }}</div>
+      }
+
+      <div class="login__field">
+        <label class="login__label" for="email">Email</label>
+        <input
+          class="login__input"
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="admin@eturtle.com"
+        />
+      </div>
+
+      <div class="login__field">
+        <label class="login__label" for="password">Password</label>
+        <input
+          class="login__input"
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Enter your password"
+        />
+      </div>
+
+      <button
+        class="login__button"
+        type="submit"
+        [disabled]="loginForm.invalid || isLoading"
+      >
+        {{ isLoading ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+  </div>
+</div>
