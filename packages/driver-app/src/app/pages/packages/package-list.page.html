@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Packages</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="isLoading" class="ion-padding ion-text-center">
+    <p>Loading packages...</p>
+  </div>
+
+  <div *ngIf="!isLoading && packages.length === 0" class="ion-padding ion-text-center">
+    <h3>No Packages</h3>
+    <p>No packages assigned for today.</p>
+  </div>
+
+  <ion-list *ngIf="!isLoading && packages.length > 0">
+    <ion-item *ngFor="let pkg of packages" [routerLink]="['/tabs/packages', pkg.id]" detail>
+      <ion-label>
+        <h2>{{ pkg.trackingNumber }}</h2>
+        <p>{{ pkg.destinationAddress }}</p>
+      </ion-label>
+      <ion-badge slot="end" [color]="getStatusColor(pkg.status)">{{ pkg.status }}</ion-badge>
+    </ion-item>
+  </ion-list>
+</ion-content>
