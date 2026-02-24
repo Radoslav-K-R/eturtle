@@ -1,0 +1,28 @@
+<div class="dashboard">
+  <h2 class="dashboard__title">Dashboard Overview</h2>
+
+  @if (isLoading) {
+    <p class="dashboard__loading">Loading stats...</p>
+  }
+
+  @if (stats) {
+    <div class="dashboard__grid">
+      <div class="dashboard__card dashboard__card--packages">
+        <span class="dashboard__card-value">{{ stats.totalPackages }}</span>
+        <span class="dashboard__card-label">Total Packages</span>
+      </div>
+      <div class="dashboard__card dashboard__card--routes">
+        <span class="dashboard__card-value">{{ stats.pendingRoutes }}</span>
+        <span class="dashboard__card-label">Pending Routes</span>
+      </div>
+      <div class="dashboard__card dashboard__card--vehicles">
+        <span class="dashboard__card-value">{{ stats.activeVehicles }}</span>
+        <span class="dashboard__card-label">Active Vehicles</span>
+      </div>
+      <div class="dashboard__card dashboard__card--deliveries">
+        <span class="dashboard__card-value">{{ stats.deliveriesToday }}</span>
+        <span class="dashboard__card-label">Deliveries Today</span>
+      </div>
+    </div>
+  }
+</div>

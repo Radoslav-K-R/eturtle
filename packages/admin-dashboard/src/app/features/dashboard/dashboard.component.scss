@@ -1,0 +1,60 @@
+@use '../../../app/shared/styles/variables' as *;
+
+.dashboard {
+  padding: $spacing-lg;
+
+  &__title {
+    margin: 0 0 $spacing-lg;
+    font-size: $font-size-xl;
+    color: $color-text-primary;
+  }
+
+  &__loading {
+    color: $color-text-secondary;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $spacing-md;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $spacing-lg;
+    background-color: $color-surface;
+    border-radius: $border-radius-md;
+    box-shadow: $shadow-sm;
+    border-top: 4px solid transparent;
+
+    &--packages {
+      border-top-color: $color-primary;
+    }
+
+    &--routes {
+      border-top-color: $color-status-pending;
+    }
+
+    &--vehicles {
+      border-top-color: $color-success;
+    }
+
+    &--deliveries {
+      border-top-color: $color-accent;
+    }
+  }
+
+  &__card-value {
+    font-size: $font-size-xxl;
+    font-weight: 700;
+    color: $color-text-primary;
+  }
+
+  &__card-label {
+    margin-top: $spacing-xs;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+  }
+}
