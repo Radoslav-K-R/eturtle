@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Delivery History</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="isLoading" class="ion-padding ion-text-center">
+    <p>Loading history...</p>
+  </div>
+
+  <div *ngIf="!isLoading && deliveries.length === 0" class="ion-padding ion-text-center">
+    <h3>No Deliveries</h3>
+    <p>You haven't completed any deliveries yet.</p>
+  </div>
+
+  <ion-list *ngIf="!isLoading && deliveries.length > 0">
+    <ion-item *ngFor="let delivery of deliveries">
+      <ion-label>
+        <h2>{{ delivery.trackingNumber }}</h2>
+        <p>{{ delivery.destinationAddress }}</p>
+        <p>Recipient: {{ delivery.recipientName }}</p>
+      </ion-label>
+      <ion-note slot="end">{{ delivery.deliveredAt | date:'short' }}</ion-note>
+    </ion-item>
+  </ion-list>
+</ion-content>
