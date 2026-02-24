@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>eTurtle Driver</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="login-container">
+    <h2>Driver Login</h2>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      <ion-item>
+        <ion-input label="Email" type="email" formControlName="email" placeholder="Enter email"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Password" type="password" formControlName="password" placeholder="Enter password"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="errorMessage">
+        <p class="error-text">{{ errorMessage }}</p>
+      </ion-text>
+      <ion-button expand="block" type="submit" [disabled]="loginForm.invalid || isLoading">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </ion-button>
+    </form>
+  </div>
+</ion-content>
