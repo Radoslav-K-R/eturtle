@@ -1,0 +1,42 @@
+<div class="user-form">
+  <a routerLink="/users" class="user-form__back">&larr; Back</a>
+  <h2>Create User</h2>
+
+  @if (errorMessage) {
+    <div class="user-form__error">{{ errorMessage }}</div>
+  }
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-form__form">
+    <div class="user-form__field">
+      <label>Full Name</label>
+      <input formControlName="fullName" placeholder="Enter full name" />
+    </div>
+    <div class="user-form__field">
+      <label>Email</label>
+      <input type="email" formControlName="email" placeholder="user@eturtle.com" />
+    </div>
+    <div class="user-form__field">
+      <label>Password</label>
+      <input type="password" formControlName="password" placeholder="Min 8 characters" />
+    </div>
+    <div class="user-form__field">
+      <label>Role</label>
+      <select formControlName="role">
+        <option value="admin">Admin</option>
+        <option value="driver">Driver</option>
+      </select>
+    </div>
+    <div class="user-form__field">
+      <label>Assign Vehicle (drivers only)</label>
+      <select formControlName="vehicleId">
+        <option value="">None</option>
+        @for (vehicle of vehicles; track vehicle.id) {
+          <option [value]="vehicle.id">{{ vehicle.licensePlate }} ({{ vehicle.type }})</option>
+        }
+      </select>
+    </div>
+    <button type="submit" [disabled]="userForm.invalid || isSubmitting" class="user-form__submit">
+      {{ isSubmitting ? 'Creating...' : 'Create User' }}
+    </button>
+  </form>
+</div>

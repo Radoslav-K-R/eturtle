@@ -1,0 +1,41 @@
+<div class="user-list">
+  <div class="user-list__header">
+    <h2>Users</h2>
+    <a routerLink="new" class="user-list__add-button">+ Create User</a>
+  </div>
+
+  <div class="user-list__filters">
+    <select [(ngModel)]="roleFilter" (ngModelChange)="onFilterChange()" class="user-list__filter">
+      <option value="">All Roles</option>
+      <option value="admin">Admin</option>
+      <option value="driver">Driver</option>
+    </select>
+  </div>
+
+  @if (isLoading) { <p>Loading...</p> }
+
+  <table class="user-list__table">
+    <thead>
+      <tr>
+        <th (click)="onSort('fullName')" class="user-list__th">Name</th>
+        <th (click)="onSort('email')" class="user-list__th">Email</th>
+        <th (click)="onSort('role')" class="user-list__th">Role</th>
+        <th class="user-list__th">Vehicle</th>
+        <th class="user-list__th">Active</th>
+        <th (click)="onSort('createdAt')" class="user-list__th">Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of users; track user.id) {
+        <tr>
+          <td>{{ user.fullName }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>{{ user.vehicleLicensePlate || '-' }}</td>
+          <td>{{ user.isActive ? 'Yes' : 'No' }}</td>
+          <td>{{ user.createdAt | date:'short' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
