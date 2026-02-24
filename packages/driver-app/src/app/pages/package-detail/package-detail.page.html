@@ -1,0 +1,66 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/packages"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Package Detail</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div *ngIf="isLoading" class="ion-text-center">
+    <p>Loading package...</p>
+  </div>
+
+  <div *ngIf="!isLoading && !package" class="ion-text-center">
+    <h3>Package Not Found</h3>
+  </div>
+
+  <div *ngIf="package">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ package.trackingNumber }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-label>Status</ion-label>
+          <ion-badge slot="end" [color]="getStatusColor(package.status)">{{ package.status }}</ion-badge>
+        </ion-item>
+        <ion-item>
+          <ion-label>Origin</ion-label>
+          <ion-note slot="end">{{ package.originAddress }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Destination</ion-label>
+          <ion-note slot="end">{{ package.destinationAddress }}</ion-note>
+        </ion-item>
+        <ion-item>
+          <ion-label>Weight</ion-label>
+          <ion-note slot="end">{{ package.weightKg }} kg</ion-note>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="package.status !== 'delivered'">
+      <ion-card-header>
+        <ion-card-title>Confirm Delivery</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="deliveryForm" (ngSubmit)="confirmDelivery()">
+          <ion-item>
+            <ion-input label="Recipient Name" formControlName="recipientName" placeholder="Enter recipient name"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-textarea label="Notes" formControlName="notes" placeholder="Optional delivery notes" rows="3"></ion-textarea>
+          </ion-item>
+          <ion-button expand="block" type="submit" [disabled]="deliveryForm.invalid || isDelivering">
+            {{ isDelivering ? 'Confirming...' : 'Confirm Delivery' }}
+          </ion-button>
+        </form>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-text color="success" *ngIf="successMessage">
+      <p class="success-text ion-padding">{{ successMessage }}</p>
+    </ion-text>
+  </div>
+</ion-content>
