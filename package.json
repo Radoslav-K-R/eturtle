@@ -2,10 +2,5 @@
   "name": "eturtle",
   "version": "0.0.1",
   "private": true,
-  "description": "Delivery management platform",
-  "workspaces": [
-    "packages/backend",
-    "packages/admin-dashboard",
-    "packages/driver-app"
-  ]
+  "description": "Delivery management platform"
 }
