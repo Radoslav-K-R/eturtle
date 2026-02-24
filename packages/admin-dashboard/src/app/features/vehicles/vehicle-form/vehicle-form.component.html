@@ -1,0 +1,45 @@
+<div class="vehicle-form">
+  <a routerLink="/vehicles" class="vehicle-form__back">&larr; Back</a>
+  <h2>{{ isEditMode ? 'Edit Vehicle' : 'New Vehicle' }}</h2>
+
+  @if (errorMessage) {
+    <div class="vehicle-form__error">{{ errorMessage }}</div>
+  }
+
+  <form [formGroup]="vehicleForm" (ngSubmit)="onSubmit()" class="vehicle-form__form">
+    <div class="vehicle-form__field">
+      <label>License Plate</label>
+      <input formControlName="licensePlate" />
+    </div>
+    <div class="vehicle-form__field">
+      <label>Type</label>
+      <select formControlName="type">
+        <option value="van">Van</option>
+        <option value="truck">Truck</option>
+        <option value="motorcycle">Motorcycle</option>
+      </select>
+    </div>
+    <div class="vehicle-form__row">
+      <div class="vehicle-form__field">
+        <label>Weight Capacity (kg)</label>
+        <input type="number" formControlName="weightCapacityKg" step="0.01" />
+      </div>
+      <div class="vehicle-form__field">
+        <label>Volume Capacity (cbm)</label>
+        <input type="number" formControlName="volumeCapacityCbm" step="0.01" />
+      </div>
+    </div>
+    <div class="vehicle-form__field">
+      <label>Current Depot</label>
+      <select formControlName="currentDepotId">
+        <option value="">None</option>
+        @for (depot of depots; track depot.id) {
+          <option [value]="depot.id">{{ depot.name }}</option>
+        }
+      </select>
+    </div>
+    <button type="submit" [disabled]="vehicleForm.invalid || isSubmitting" class="vehicle-form__submit">
+      {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Vehicle' : 'Create Vehicle') }}
+    </button>
+  </form>
+</div>

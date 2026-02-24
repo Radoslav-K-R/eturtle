@@ -1,0 +1,50 @@
+<div class="vehicle-list">
+  <div class="vehicle-list__header">
+    <h2>Vehicles</h2>
+    <a routerLink="new" class="vehicle-list__add-button">+ Add Vehicle</a>
+  </div>
+
+  <div class="vehicle-list__filters">
+    <select [(ngModel)]="typeFilter" (ngModelChange)="onFilterChange()" class="vehicle-list__filter">
+      <option value="">All Types</option>
+      <option value="van">Van</option>
+      <option value="truck">Truck</option>
+      <option value="motorcycle">Motorcycle</option>
+    </select>
+  </div>
+
+  @if (isLoading) {
+    <p class="vehicle-list__loading">Loading...</p>
+  }
+
+  <table class="vehicle-list__table">
+    <thead>
+      <tr>
+        <th (click)="onSort('licensePlate')" class="vehicle-list__th">License Plate</th>
+        <th (click)="onSort('type')" class="vehicle-list__th">Type</th>
+        <th class="vehicle-list__th">Weight Cap. (kg)</th>
+        <th class="vehicle-list__th">Volume Cap. (cbm)</th>
+        <th class="vehicle-list__th">Current Load</th>
+        <th class="vehicle-list__th">Depot</th>
+        <th (click)="onSort('status')" class="vehicle-list__th">Status</th>
+        <th class="vehicle-list__th">Driver</th>
+        <th class="vehicle-list__th">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (vehicle of vehicles; track vehicle.id) {
+        <tr>
+          <td>{{ vehicle.licensePlate }}</td>
+          <td>{{ vehicle.type }}</td>
+          <td>{{ vehicle.weightCapacityKg }}</td>
+          <td>{{ vehicle.volumeCapacityCbm }}</td>
+          <td>{{ vehicle.currentLoadKg }}kg / {{ vehicle.currentLoadCbm }}cbm</td>
+          <td>{{ vehicle.currentDepotName || '-' }}</td>
+          <td>{{ vehicle.status }}</td>
+          <td>{{ vehicle.assignedDriver?.fullName || '-' }}</td>
+          <td><a [routerLink]="['edit', vehicle.id]">Edit</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
