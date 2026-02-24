@@ -1,0 +1,53 @@
+<div class="package-detail">
+  <a routerLink="/packages" class="package-detail__back">&larr; Back to Packages</a>
+
+  @if (isLoading) {
+    <p>Loading...</p>
+  }
+
+  @if (packageData) {
+    <h2 class="package-detail__title">{{ packageData.trackingNumber }}</h2>
+
+    <div class="package-detail__grid">
+      <div class="package-detail__section">
+        <h3>Package Info</h3>
+        <dl>
+          <dt>Status</dt>
+          <dd>
+            <span class="package-detail__status">{{ packageData.currentStatus }}</span>
+          </dd>
+          <dt>Origin</dt>
+          <dd>{{ packageData.originAddress }}</dd>
+          <dt>Destination</dt>
+          <dd>{{ packageData.destinationAddress }}</dd>
+          <dt>Weight</dt>
+          <dd>{{ packageData.weightKg }} kg</dd>
+          <dt>Dimensions</dt>
+          <dd>{{ packageData.lengthCm }} x {{ packageData.widthCm }} x {{ packageData.heightCm }} cm</dd>
+          <dt>Volume</dt>
+          <dd>{{ packageData.volumeCbm }} cbm</dd>
+          <dt>Contents</dt>
+          <dd>{{ packageData.contentsDescription || 'N/A' }}</dd>
+          <dt>Vehicle</dt>
+          <dd>{{ packageData.assignedVehicleLicensePlate || 'Unassigned' }}</dd>
+        </dl>
+      </div>
+
+      <div class="package-detail__section">
+        <h3>Status History</h3>
+        <div class="package-detail__timeline">
+          @for (entry of packageData.statusHistory; track entry.id) {
+            <div class="package-detail__timeline-entry">
+              <span class="package-detail__timeline-status">{{ entry.status }}</span>
+              <span class="package-detail__timeline-date">{{ entry.createdAt | date:'medium' }}</span>
+              <span class="package-detail__timeline-user">by {{ entry.changedByUserName || 'System' }}</span>
+              @if (entry.note) {
+                <span class="package-detail__timeline-note">{{ entry.note }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

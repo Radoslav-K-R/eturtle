@@ -1,0 +1,104 @@
+@use '../../../../app/shared/styles/variables' as *;
+
+.package-list {
+  padding: $spacing-lg;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-md;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: $font-size-xl;
+  }
+
+  &__add-button {
+    padding: $spacing-sm $spacing-md;
+    background-color: $color-primary;
+    color: $color-text-light;
+    border-radius: $border-radius-sm;
+    text-decoration: none;
+    font-size: $font-size-sm;
+  }
+
+  &__filters {
+    margin-bottom: $spacing-md;
+  }
+
+  &__filter {
+    padding: $spacing-sm;
+    border: 1px solid $color-border;
+    border-radius: $border-radius-sm;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: $color-surface;
+    border-radius: $border-radius-md;
+    overflow: hidden;
+    box-shadow: $shadow-sm;
+  }
+
+  &__th {
+    padding: $spacing-sm $spacing-md;
+    text-align: left;
+    background-color: $color-background;
+    font-size: $font-size-sm;
+    font-weight: 600;
+    color: $color-text-secondary;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  td {
+    padding: $spacing-sm $spacing-md;
+    border-top: 1px solid $color-divider;
+    font-size: $font-size-sm;
+  }
+
+  &__status {
+    padding: 2px $spacing-sm;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-xs;
+    font-weight: 500;
+    text-transform: uppercase;
+
+    &--registered { background-color: #e0e0e0; }
+    &--assigned { background-color: #bbdefb; color: #1565c0; }
+    &--in_transit { background-color: #fff3e0; color: #e65100; }
+    &--out_for_delivery { background-color: #fff3e0; color: #e65100; }
+    &--delivered { background-color: #e8f5e9; color: #2e7d32; }
+    &--cancelled { background-color: #fce4ec; color: #c62828; }
+  }
+
+  &__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-md;
+    margin-top: $spacing-md;
+
+    button {
+      padding: $spacing-xs $spacing-md;
+      border: 1px solid $color-border;
+      border-radius: $border-radius-sm;
+      background-color: $color-surface;
+      cursor: pointer;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  &__loading {
+    color: $color-text-secondary;
+    text-align: center;
+    padding: $spacing-lg;
+  }
+}

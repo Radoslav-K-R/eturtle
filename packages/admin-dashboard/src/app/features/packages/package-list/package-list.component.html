@@ -1,0 +1,63 @@
+<div class="package-list">
+  <div class="package-list__header">
+    <h2 class="package-list__title">Packages</h2>
+    <a routerLink="new" class="package-list__add-button">+ Add Package</a>
+  </div>
+
+  <div class="package-list__filters">
+    <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()" class="package-list__filter">
+      <option value="">All Statuses</option>
+      <option value="registered">Registered</option>
+      <option value="assigned">Assigned</option>
+      <option value="in_transit">In Transit</option>
+      <option value="out_for_delivery">Out for Delivery</option>
+      <option value="delivered">Delivered</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+
+  @if (isLoading) {
+    <p class="package-list__loading">Loading...</p>
+  }
+
+  <table class="package-list__table">
+    <thead>
+      <tr>
+        <th (click)="onSort('trackingNumber')" class="package-list__th">Tracking #</th>
+        <th class="package-list__th">Origin</th>
+        <th class="package-list__th">Destination</th>
+        <th (click)="onSort('weightKg')" class="package-list__th">Weight (kg)</th>
+        <th (click)="onSort('currentStatus')" class="package-list__th">Status</th>
+        <th class="package-list__th">Vehicle</th>
+        <th (click)="onSort('createdAt')" class="package-list__th">Created</th>
+        <th class="package-list__th">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (pkg of packages; track pkg.id) {
+        <tr>
+          <td>{{ pkg.trackingNumber }}</td>
+          <td>{{ pkg.originAddress }}</td>
+          <td>{{ pkg.destinationAddress }}</td>
+          <td>{{ pkg.weightKg }}</td>
+          <td>
+            <span class="package-list__status package-list__status--{{ pkg.currentStatus }}">
+              {{ pkg.currentStatus }}
+            </span>
+          </td>
+          <td>{{ pkg.assignedVehicleLicensePlate || '-' }}</td>
+          <td>{{ pkg.createdAt | date:'short' }}</td>
+          <td><a [routerLink]="[pkg.id]">View</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  @if (totalPages > 1) {
+    <div class="package-list__pagination">
+      <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage <= 1">Previous</button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage >= totalPages">Next</button>
+    </div>
+  }
+</div>

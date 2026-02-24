@@ -1,0 +1,49 @@
+<div class="package-form">
+  <a routerLink="/packages" class="package-form__back">&larr; Back to Packages</a>
+  <h2 class="package-form__title">New Package</h2>
+
+  @if (errorMessage) {
+    <div class="package-form__error">{{ errorMessage }}</div>
+  }
+
+  <form [formGroup]="packageForm" (ngSubmit)="onSubmit()" class="package-form__form">
+    <div class="package-form__row">
+      <div class="package-form__field">
+        <label>Origin Address</label>
+        <input formControlName="originAddress" placeholder="Enter origin address" />
+      </div>
+      <div class="package-form__field">
+        <label>Destination Address</label>
+        <input formControlName="destinationAddress" placeholder="Enter destination address" />
+      </div>
+    </div>
+
+    <div class="package-form__row">
+      <div class="package-form__field">
+        <label>Weight (kg)</label>
+        <input type="number" formControlName="weightKg" step="0.01" />
+      </div>
+      <div class="package-form__field">
+        <label>Length (cm)</label>
+        <input type="number" formControlName="lengthCm" step="0.01" />
+      </div>
+      <div class="package-form__field">
+        <label>Width (cm)</label>
+        <input type="number" formControlName="widthCm" step="0.01" />
+      </div>
+      <div class="package-form__field">
+        <label>Height (cm)</label>
+        <input type="number" formControlName="heightCm" step="0.01" />
+      </div>
+    </div>
+
+    <div class="package-form__field">
+      <label>Contents Description</label>
+      <textarea formControlName="contentsDescription" rows="3" placeholder="Describe contents..."></textarea>
+    </div>
+
+    <button type="submit" [disabled]="packageForm.invalid || isSubmitting" class="package-form__submit">
+      {{ isSubmitting ? 'Creating...' : 'Create Package' }}
+    </button>
+  </form>
+</div>
