@@ -1,7 +1,8 @@
 import { DepotRepository } from '../repositories/depot.repository.js';
-import { Depot, DepotWithVehicleCount, CreateDepotRequest, UpdateDepotRequest } from '../models/depot.model.js';
+import { Depot, DepotWithVehicleCount, DepotWithDistance, CreateDepotRequest, UpdateDepotRequest } from '../models/depot.model.js';
 import { AppError } from '../middleware/error-handler.js';
 import { PAGINATION_DEFAULTS } from '../config/constants.js';
+import { DepotType } from '../config/constants.js';
 
 const HTTP_NOT_FOUND = 404;
 
@@ -18,8 +19,9 @@ export class DepotService {
     sortBy: string = 'name',
     sortOrder: string = 'asc',
     isActive?: boolean,
+    type?: DepotType,
   ): Promise<{ items: DepotWithVehicleCount[]; total: number }> {
-    return this.depotRepository.findAll(page, pageSize, sortBy, sortOrder, isActive);
+    return this.depotRepository.findAll(page, pageSize, sortBy, sortOrder, isActive, type);
   }
 
   async findById(id: string): Promise<DepotWithVehicleCount> {
@@ -36,6 +38,8 @@ export class DepotService {
       request.address,
       request.latitude,
       request.longitude,
+      request.type ?? 'depot',
+      request.city,
     );
   }
 
@@ -45,5 +49,14 @@ export class DepotService {
       throw new AppError('Depot not found', HTTP_NOT_FOUND);
     }
     return depot;
+  }
+
+  async findNearest(
+    latitude: number,
+    longitude: number,
+    type?: DepotType,
+    limit: number = 5,
+  ): Promise<DepotWithDistance[]> {
+    return this.depotRepository.findNearest(latitude, longitude, type, limit);
   }
 }

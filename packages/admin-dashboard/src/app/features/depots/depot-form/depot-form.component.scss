@@ -17,6 +17,36 @@
     label { margin-bottom: $spacing-xs; font-size: $font-size-sm; font-weight: 500; }
     input { padding: $spacing-sm; border: 1px solid $color-border; border-radius: $border-radius-sm; font-size: $font-size-sm; }
   }
+  &__radio-group {
+    display: flex;
+    gap: $spacing-lg;
+  }
+  &__radio {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    font-size: $font-size-sm;
+    cursor: pointer;
+
+    input[type="radio"] { margin: 0; }
+  }
+  &__radio-hint {
+    color: $color-text-secondary;
+    font-size: $font-size-xs;
+  }
+  &__geocoding {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+    margin-top: $spacing-xs;
+  }
+  &__resolved {
+    padding: $spacing-sm $spacing-md;
+    margin-bottom: $spacing-md;
+    background-color: #e8f5e9;
+    color: $color-success;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-sm;
+  }
   &__submit {
     padding: $spacing-sm $spacing-lg;
     background-color: $color-primary;

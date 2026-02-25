@@ -82,6 +82,13 @@ export const PAGINATION_DEFAULTS = {
   MAX_PAGE_SIZE: 100,
 } as const;
 
+export const DEPOT_TYPES = {
+  DEPOT: 'depot',
+  HUB: 'hub',
+} as const;
+
+export type DepotType = typeof DEPOT_TYPES[keyof typeof DEPOT_TYPES];
+
 export const TRACKING_NUMBER_PREFIX = 'ET';
 
 export const VOLUME_DIVISOR = 1_000_000;

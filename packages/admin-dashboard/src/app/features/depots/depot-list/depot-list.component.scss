@@ -5,7 +5,43 @@
 
   &__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: $spacing-md; h2 { margin: 0; font-size: $font-size-xl; } }
   &__add-button { padding: $spacing-sm $spacing-md; background-color: $color-primary; color: $color-text-light; border-radius: $border-radius-sm; text-decoration: none; font-size: $font-size-sm; }
+
+  &__filters {
+    display: flex;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+  }
+  &__filter-btn {
+    padding: $spacing-xs $spacing-md;
+    border: 1px solid $color-border;
+    border-radius: $border-radius-sm;
+    background-color: $color-surface;
+    font-size: $font-size-sm;
+    cursor: pointer;
+
+    &--active {
+      background-color: $color-primary;
+      color: $color-text-light;
+      border-color: $color-primary;
+    }
+  }
+
   &__table { width: 100%; border-collapse: collapse; background-color: $color-surface; box-shadow: $shadow-sm; }
   &__th { padding: $spacing-sm $spacing-md; text-align: left; background-color: $color-background; font-size: $font-size-sm; font-weight: 600; color: $color-text-secondary; cursor: pointer; }
   td { padding: $spacing-sm $spacing-md; border-top: 1px solid $color-divider; font-size: $font-size-sm; }
+
+  &__badge {
+    display: inline-block;
+    padding: 2px $spacing-sm;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-xs;
+    font-weight: 600;
+    text-transform: uppercase;
+    background-color: $color-status-assigned;
+    color: $color-text-light;
+
+    &--hub {
+      background-color: $color-accent;
+    }
+  }
 }

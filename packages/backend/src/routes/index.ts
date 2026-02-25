@@ -8,12 +8,14 @@ import { packageRoutes } from './package.routes.js';
 import { routeRoutes } from './route.routes.js';
 import { deliveryRoutes } from './delivery.routes.js';
 import { driverRoutes } from './driver.routes.js';
+import { geocodingRoutes } from './geocoding.routes.js';
 import { logger } from '../utils/logger.js';
 
 export function mountRoutes(application: Express): void {
   application.use('/api/auth', authRoutes);
   application.use('/api/dashboard', dashboardRoutes);
   application.use('/api/depots', depotRoutes);
+  application.use('/api/geocoding', geocodingRoutes);
   application.use('/api/vehicles', vehicleRoutes);
   application.use('/api/users', userRoutes);
   application.use('/api/packages', packageRoutes);

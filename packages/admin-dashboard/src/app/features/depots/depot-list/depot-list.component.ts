@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { DepotService } from '../services/depot.service';
-import { Depot } from '../../../models/depot.model';
+import { Depot, DepotType } from '../../../models/depot.model';
 
 @Component({
   selector: 'app-depot-list',
@@ -18,6 +18,7 @@ export class DepotListComponent implements OnInit, OnDestroy {
   isLoading = false;
   sortBy = 'name';
   sortOrder = 'asc';
+  typeFilter: DepotType | undefined;
   private readonly destroy$ = new Subject<void>();
 
   constructor(private readonly depotService: DepotService) {}
@@ -27,7 +28,7 @@ export class DepotListComponent implements OnInit, OnDestroy {
   loadDepots(): void {
     this.isLoading = true;
     this.depotService
-      .getAll(1, 100, this.sortBy, this.sortOrder)
+      .getAll(1, 100, this.sortBy, this.sortOrder, this.typeFilter)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -46,6 +47,11 @@ export class DepotListComponent implements OnInit, OnDestroy {
       this.sortBy = column;
       this.sortOrder = 'asc';
     }
+    this.loadDepots();
+  }
+
+  onFilterType(type: DepotType | undefined): void {
+    this.typeFilter = type;
     this.loadDepots();
   }
 

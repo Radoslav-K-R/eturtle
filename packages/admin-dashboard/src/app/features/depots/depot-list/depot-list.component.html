@@ -1,7 +1,25 @@
 <div class="depot-list">
   <div class="depot-list__header">
-    <h2>Depots</h2>
-    <a routerLink="new" class="depot-list__add-button">+ Add Depot</a>
+    <h2>Depots &amp; Hubs</h2>
+    <a routerLink="new" class="depot-list__add-button">+ Add Depot / Hub</a>
+  </div>
+
+  <div class="depot-list__filters">
+    <button
+      class="depot-list__filter-btn"
+      [class.depot-list__filter-btn--active]="!typeFilter"
+      (click)="onFilterType(undefined)"
+    >All</button>
+    <button
+      class="depot-list__filter-btn"
+      [class.depot-list__filter-btn--active]="typeFilter === 'depot'"
+      (click)="onFilterType('depot')"
+    >Depots</button>
+    <button
+      class="depot-list__filter-btn"
+      [class.depot-list__filter-btn--active]="typeFilter === 'hub'"
+      (click)="onFilterType('hub')"
+    >Hubs</button>
   </div>
 
   @if (isLoading) { <p>Loading...</p> }
@@ -9,7 +27,9 @@
   <table class="depot-list__table">
     <thead>
       <tr>
+        <th class="depot-list__th">Type</th>
         <th (click)="onSort('name')" class="depot-list__th">Name</th>
+        <th class="depot-list__th">City</th>
         <th class="depot-list__th">Address</th>
         <th class="depot-list__th">Lat / Lng</th>
         <th class="depot-list__th">Vehicles</th>
@@ -19,7 +39,13 @@
     <tbody>
       @for (depot of depots; track depot.id) {
         <tr>
+          <td>
+            <span class="depot-list__badge" [class.depot-list__badge--hub]="depot.type === 'hub'">
+              {{ depot.type }}
+            </span>
+          </td>
           <td>{{ depot.name }}</td>
+          <td>{{ depot.city || '—' }}</td>
           <td>{{ depot.address }}</td>
           <td>{{ depot.latitude }}, {{ depot.longitude }}</td>
           <td>{{ depot.vehicleCount }}</td>

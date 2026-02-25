@@ -4,11 +4,41 @@ import { DepotService } from '../services/depot.service.js';
 import { validateRequest } from '../middleware/request-validator.js';
 import { requireRole } from '../middleware/authorization.js';
 import { sendSuccess, sendCreated, sendPaginated } from '../utils/response.js';
-import { USER_ROLES, PAGINATION_DEFAULTS } from '../config/constants.js';
+import { USER_ROLES, PAGINATION_DEFAULTS, DEPOT_TYPES } from '../config/constants.js';
 
 const depotService = new DepotService();
 
 export const depotRoutes = Router();
+
+depotRoutes.get(
+  '/nearest',
+  [
+    query('latitude').isFloat({ min: -90, max: 90 })
+      .withMessage('Latitude must be between -90 and 90'),
+    query('longitude').isFloat({ min: -180, max: 180 })
+      .withMessage('Longitude must be between -180 and 180'),
+    query('type').optional().isIn([DEPOT_TYPES.DEPOT, DEPOT_TYPES.HUB])
+      .withMessage('Type must be "depot" or "hub"'),
+    query('limit').optional().isInt({ min: 1, max: 50 })
+      .withMessage('Limit must be between 1 and 50'),
+  ],
+  validateRequest,
+  async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+    try {
+      const latitude = parseFloat(request.query['latitude'] as string);
+      const longitude = parseFloat(request.query['longitude'] as string);
+      const type = request.query['type'] as 'depot' | 'hub' | undefined;
+      const limit = request.query['limit']
+        ? parseInt(request.query['limit'] as string, 10)
+        : 5;
+
+      const results = await depotService.findNearest(latitude, longitude, type, limit);
+      sendSuccess(response, results);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 depotRoutes.get(
   '/',
@@ -24,8 +54,9 @@ depotRoutes.get(
       const isActive = request.query['isActive'] !== undefined
         ? request.query['isActive'] === 'true'
         : undefined;
+      const type = request.query['type'] as 'depot' | 'hub' | undefined;
 
-      const result = await depotService.findAll(page, pageSize, sortBy, sortOrder, isActive);
+      const result = await depotService.findAll(page, pageSize, sortBy, sortOrder, isActive, type);
       sendPaginated(response, result.items, result.total, page, pageSize);
     } catch (error) {
       next(error);
@@ -57,6 +88,10 @@ depotRoutes.post(
       .withMessage('Latitude must be between -90 and 90'),
     body('longitude').isFloat({ min: -180, max: 180 })
       .withMessage('Longitude must be between -180 and 180'),
+    body('type').optional().isIn([DEPOT_TYPES.DEPOT, DEPOT_TYPES.HUB])
+      .withMessage('Type must be "depot" or "hub"'),
+    body('city').optional().isString().trim().isLength({ min: 1, max: 255 })
+      .withMessage('City must be 1-255 characters'),
   ],
   validateRequest,
   async (request: Request, response: Response, next: NextFunction): Promise<void> => {
@@ -83,6 +118,10 @@ depotRoutes.put(
       .withMessage('Longitude must be between -180 and 180'),
     body('isActive').optional().isBoolean()
       .withMessage('isActive must be a boolean'),
+    body('type').optional().isIn([DEPOT_TYPES.DEPOT, DEPOT_TYPES.HUB])
+      .withMessage('Type must be "depot" or "hub"'),
+    body('city').optional().isString().trim().isLength({ min: 1, max: 255 })
+      .withMessage('City must be 1-255 characters'),
   ],
   validateRequest,
   async (request: Request, response: Response, next: NextFunction): Promise<void> => {

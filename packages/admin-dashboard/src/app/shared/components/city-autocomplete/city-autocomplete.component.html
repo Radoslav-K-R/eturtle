@@ -1,0 +1,25 @@
+<div class="city-autocomplete">
+  <input
+    [formControl]="searchControl"
+    placeholder="Search for a city..."
+    (blur)="onBlur()"
+    (focus)="results.length > 0 && (isOpen = true)"
+    autocomplete="off"
+  />
+  @if (isLoading) {
+    <span class="city-autocomplete__loading">Searching...</span>
+  }
+  @if (isOpen) {
+    <ul class="city-autocomplete__dropdown">
+      @for (city of results; track city.displayName) {
+        <li class="city-autocomplete__item" (mousedown)="selectCity(city)">
+          <span class="city-autocomplete__city">{{ city.city }}</span>
+          @if (city.state) {
+            <span class="city-autocomplete__state">, {{ city.state }}</span>
+          }
+          <span class="city-autocomplete__country"> - {{ city.country }}</span>
+        </li>
+      }
+    </ul>
+  }
+</div>

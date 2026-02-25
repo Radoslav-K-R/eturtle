@@ -1,6 +1,6 @@
 <div class="depot-form">
   <a routerLink="/depots" class="depot-form__back">&larr; Back</a>
-  <h2>New Depot</h2>
+  <h2>New Depot / Hub</h2>
 
   @if (errorMessage) {
     <div class="depot-form__error">{{ errorMessage }}</div>
@@ -8,13 +8,40 @@
 
   <form [formGroup]="depotForm" (ngSubmit)="onSubmit()" class="depot-form__form">
     <div class="depot-form__field">
-      <label>Name</label>
-      <input formControlName="name" placeholder="Depot name" />
+      <label>Type</label>
+      <div class="depot-form__radio-group">
+        <label class="depot-form__radio">
+          <input type="radio" formControlName="type" value="depot" />
+          Depot <span class="depot-form__radio-hint">(long-range)</span>
+        </label>
+        <label class="depot-form__radio">
+          <input type="radio" formControlName="type" value="hub" />
+          Hub <span class="depot-form__radio-hint">(local / inner-city)</span>
+        </label>
+      </div>
     </div>
+
+    <div class="depot-form__field">
+      <label>Name</label>
+      <input formControlName="name" placeholder="Depot / Hub name" />
+    </div>
+
+    <div class="depot-form__field">
+      <label>City</label>
+      <app-city-autocomplete
+        formControlName="city"
+        (citySelected)="onCitySelected($event)"
+      ></app-city-autocomplete>
+    </div>
+
     <div class="depot-form__field">
       <label>Address</label>
-      <input formControlName="address" placeholder="Full address" />
+      <input formControlName="address" placeholder="Street address" (blur)="onAddressBlur()" />
+      @if (isGeocoding) {
+        <span class="depot-form__geocoding">Resolving coordinates...</span>
+      }
     </div>
+
     <div class="depot-form__row">
       <div class="depot-form__field">
         <label>Latitude</label>
@@ -25,8 +52,15 @@
         <input type="number" formControlName="longitude" step="0.00000001" />
       </div>
     </div>
+
+    @if (resolvedLatitude !== null && resolvedLongitude !== null) {
+      <div class="depot-form__resolved">
+        Resolved: {{ resolvedLatitude | number:'1.6-6' }}, {{ resolvedLongitude | number:'1.6-6' }}
+      </div>
+    }
+
     <button type="submit" [disabled]="depotForm.invalid || isSubmitting" class="depot-form__submit">
-      {{ isSubmitting ? 'Creating...' : 'Create Depot' }}
+      {{ isSubmitting ? 'Creating...' : 'Create' }}
     </button>
   </form>
 </div>
