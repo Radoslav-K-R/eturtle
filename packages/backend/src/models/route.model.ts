@@ -35,6 +35,8 @@ export interface RouteStop {
 
 export interface RouteStopWithPackages extends RouteStop {
   depotName: string;
+  depotLatitude: number | null;
+  depotLongitude: number | null;
   pickupPackages: RoutePackageSummary[];
   dropoffPackages: RoutePackageSummary[];
 }
@@ -43,6 +45,8 @@ export interface RoutePackageSummary {
   id: string;
   trackingNumber: string;
   destinationAddress: string;
+  destinationLatitude: number | null;
+  destinationLongitude: number | null;
 }
 
 export interface RoutePackage {

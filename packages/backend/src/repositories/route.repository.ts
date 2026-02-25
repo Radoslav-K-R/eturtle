@@ -238,6 +238,19 @@ export class RouteRepository {
     return result.rows[0] ?? null;
   }
 
+  async updateStopOrders(
+    routeId: string,
+    ordering: { stopId: string; stopOrder: number }[],
+  ): Promise<void> {
+    const pool = getPool();
+    for (const { stopId, stopOrder } of ordering) {
+      await pool.query(
+        `UPDATE route_stops SET stop_order = $1 WHERE id = $2 AND route_id = $3`,
+        [stopOrder, stopId, routeId],
+      );
+    }
+  }
+
   async findByVehicleAndDate(vehicleId: string, routeDate: string): Promise<Route | null> {
     const pool = getPool();
     const result = await pool.query<Route>(

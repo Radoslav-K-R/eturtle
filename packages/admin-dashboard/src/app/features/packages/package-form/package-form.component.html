@@ -37,6 +37,25 @@
       </div>
     </div>
 
+    <div class="package-form__row">
+      <div class="package-form__field">
+        <label>Origin Latitude</label>
+        <input type="number" formControlName="originLatitude" step="0.0000001" placeholder="e.g. 42.6977" />
+      </div>
+      <div class="package-form__field">
+        <label>Origin Longitude</label>
+        <input type="number" formControlName="originLongitude" step="0.0000001" placeholder="e.g. 23.3219" />
+      </div>
+      <div class="package-form__field">
+        <label>Destination Latitude</label>
+        <input type="number" formControlName="destinationLatitude" step="0.0000001" placeholder="e.g. 43.2141" />
+      </div>
+      <div class="package-form__field">
+        <label>Destination Longitude</label>
+        <input type="number" formControlName="destinationLongitude" step="0.0000001" placeholder="e.g. 27.9147" />
+      </div>
+    </div>
+
     <div class="package-form__field">
       <label>Contents Description</label>
       <textarea formControlName="contentsDescription" rows="3" placeholder="Describe contents..."></textarea>

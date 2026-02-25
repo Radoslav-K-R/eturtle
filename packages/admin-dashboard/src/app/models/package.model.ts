@@ -16,6 +16,10 @@ export interface Package {
   currentStatus: string;
   assignedVehicleId: string | null;
   assignedVehicleLicensePlate: string | null;
+  originLatitude: number | null;
+  originLongitude: number | null;
+  destinationLatitude: number | null;
+  destinationLongitude: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -41,4 +45,8 @@ export interface CreatePackageRequest {
   widthCm: number;
   heightCm: number;
   contentsDescription?: string;
+  originLatitude?: number;
+  originLongitude?: number;
+  destinationLatitude?: number;
+  destinationLongitude?: number;
 }

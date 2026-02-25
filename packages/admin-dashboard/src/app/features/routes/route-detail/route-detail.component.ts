@@ -4,11 +4,12 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { RouteService } from '../services/route.service';
 import { RouteWithDetails } from '../../../models/route.model';
+import { RouteMapComponent } from './route-map/route-map.component';
 
 @Component({
   selector: 'app-route-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, RouteMapComponent],
   templateUrl: './route-detail.component.html',
   styleUrl: './route-detail.component.scss',
 })

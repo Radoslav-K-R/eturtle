@@ -31,6 +31,10 @@ export class PackageFormComponent implements OnDestroy {
       widthCm: [null, [Validators.required, Validators.min(0.01)]],
       heightCm: [null, [Validators.required, Validators.min(0.01)]],
       contentsDescription: [''],
+      originLatitude: [null, [Validators.min(-90), Validators.max(90)]],
+      originLongitude: [null, [Validators.min(-180), Validators.max(180)]],
+      destinationLatitude: [null, [Validators.min(-90), Validators.max(90)]],
+      destinationLongitude: [null, [Validators.min(-180), Validators.max(180)]],
     });
   }
 

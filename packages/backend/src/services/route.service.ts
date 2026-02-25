@@ -45,11 +45,14 @@ export class RouteService {
     const stopsWithPackages: RouteStopWithPackages[] = [];
 
     for (const stop of stops) {
-      const depotResult = await pool.query<{ name: string }>(
-        'SELECT name FROM depots WHERE id = $1',
+      const depotResult = await pool.query<{ name: string; latitude: string | null; longitude: string | null }>(
+        'SELECT name, latitude, longitude FROM depots WHERE id = $1',
         [stop.depotId],
       );
-      const depotName = depotResult.rows[0]?.name ?? 'Unknown';
+      const depotRow = depotResult.rows[0];
+      const depotName = depotRow?.name ?? 'Unknown';
+      const depotLatitude = depotRow?.latitude != null ? Number(depotRow.latitude) : null;
+      const depotLongitude = depotRow?.longitude != null ? Number(depotRow.longitude) : null;
 
       const pickupPackageIds = routePackages
         .filter((rp) => rp.pickupStopId === stop.id)
@@ -60,33 +63,53 @@ export class RouteService {
 
       const pickupPackages = [];
       for (const pkgId of pickupPackageIds) {
-        const pkgResult = await pool.query<{ id: string; trackingNumber: string; destinationAddress: string }>(
+        const pkgResult = await pool.query<{ id: string; trackingNumber: string; destinationAddress: string; destinationLatitude: string | null; destinationLongitude: string | null }>(
           `SELECT id, tracking_number AS "trackingNumber",
-                  destination_address AS "destinationAddress"
+                  destination_address AS "destinationAddress",
+                  destination_latitude AS "destinationLatitude",
+                  destination_longitude AS "destinationLongitude"
            FROM packages WHERE id = $1`,
           [pkgId],
         );
         if (pkgResult.rows[0]) {
-          pickupPackages.push(pkgResult.rows[0]);
+          const row = pkgResult.rows[0];
+          pickupPackages.push({
+            id: row.id,
+            trackingNumber: row.trackingNumber,
+            destinationAddress: row.destinationAddress,
+            destinationLatitude: row.destinationLatitude != null ? Number(row.destinationLatitude) : null,
+            destinationLongitude: row.destinationLongitude != null ? Number(row.destinationLongitude) : null,
+          });
         }
       }
 
       const dropoffPackages = [];
       for (const pkgId of dropoffPackageIds) {
-        const pkgResult = await pool.query<{ id: string; trackingNumber: string; destinationAddress: string }>(
+        const pkgResult = await pool.query<{ id: string; trackingNumber: string; destinationAddress: string; destinationLatitude: string | null; destinationLongitude: string | null }>(
           `SELECT id, tracking_number AS "trackingNumber",
-                  destination_address AS "destinationAddress"
+                  destination_address AS "destinationAddress",
+                  destination_latitude AS "destinationLatitude",
+                  destination_longitude AS "destinationLongitude"
            FROM packages WHERE id = $1`,
           [pkgId],
         );
         if (pkgResult.rows[0]) {
-          dropoffPackages.push(pkgResult.rows[0]);
+          const row = pkgResult.rows[0];
+          dropoffPackages.push({
+            id: row.id,
+            trackingNumber: row.trackingNumber,
+            destinationAddress: row.destinationAddress,
+            destinationLatitude: row.destinationLatitude != null ? Number(row.destinationLatitude) : null,
+            destinationLongitude: row.destinationLongitude != null ? Number(row.destinationLongitude) : null,
+          });
         }
       }
 
       stopsWithPackages.push({
         ...stop,
         depotName,
+        depotLatitude,
+        depotLongitude,
         pickupPackages,
         dropoffPackages,
       });

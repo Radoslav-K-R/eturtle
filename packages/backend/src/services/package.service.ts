@@ -65,6 +65,10 @@ export class PackageService {
       request.widthCm,
       request.heightCm,
       request.contentsDescription ?? null,
+      request.originLatitude ?? null,
+      request.originLongitude ?? null,
+      request.destinationLatitude ?? null,
+      request.destinationLongitude ?? null,
     );
 
     await this.packageRepository.updateStatus(

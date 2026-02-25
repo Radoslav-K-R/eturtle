@@ -65,6 +65,10 @@ export class PackageRepository {
               p.current_status AS "currentStatus",
               p.assigned_vehicle_id AS "assignedVehicleId",
               v.license_plate AS "assignedVehicleLicensePlate",
+              p.origin_latitude AS "originLatitude",
+              p.origin_longitude AS "originLongitude",
+              p.destination_latitude AS "destinationLatitude",
+              p.destination_longitude AS "destinationLongitude",
               p.created_at AS "createdAt", p.updated_at AS "updatedAt"
        FROM packages p
        LEFT JOIN depots od ON p.origin_depot_id = od.id
@@ -101,6 +105,10 @@ export class PackageRepository {
               p.current_status AS "currentStatus",
               p.assigned_vehicle_id AS "assignedVehicleId",
               v.license_plate AS "assignedVehicleLicensePlate",
+              p.origin_latitude AS "originLatitude",
+              p.origin_longitude AS "originLongitude",
+              p.destination_latitude AS "destinationLatitude",
+              p.destination_longitude AS "destinationLongitude",
               p.created_at AS "createdAt", p.updated_at AS "updatedAt"
        FROM packages p
        LEFT JOIN depots od ON p.origin_depot_id = od.id
@@ -138,12 +146,18 @@ export class PackageRepository {
     widthCm: number,
     heightCm: number,
     contentsDescription: string | null,
+    originLatitude: number | null = null,
+    originLongitude: number | null = null,
+    destinationLatitude: number | null = null,
+    destinationLongitude: number | null = null,
   ): Promise<Package> {
     const pool = getPool();
     const result = await pool.query<Package>(
       `INSERT INTO packages (tracking_number, origin_address, destination_address,
-                             weight_kg, length_cm, width_cm, height_cm, contents_description)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                             weight_kg, length_cm, width_cm, height_cm, contents_description,
+                             origin_latitude, origin_longitude,
+                             destination_latitude, destination_longitude)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING id, tracking_number AS "trackingNumber",
                  origin_address AS "originAddress",
                  origin_depot_id AS "originDepotId",
@@ -155,8 +169,13 @@ export class PackageRepository {
                  contents_description AS "contentsDescription",
                  current_status AS "currentStatus",
                  assigned_vehicle_id AS "assignedVehicleId",
+                 origin_latitude AS "originLatitude",
+                 origin_longitude AS "originLongitude",
+                 destination_latitude AS "destinationLatitude",
+                 destination_longitude AS "destinationLongitude",
                  created_at AS "createdAt", updated_at AS "updatedAt"`,
-      [trackingNumber, originAddress, destinationAddress, weightKg, lengthCm, widthCm, heightCm, contentsDescription],
+      [trackingNumber, originAddress, destinationAddress, weightKg, lengthCm, widthCm, heightCm,
+       contentsDescription, originLatitude, originLongitude, destinationLatitude, destinationLongitude],
     );
     return result.rows[0]!;
   }
@@ -196,6 +215,10 @@ export class PackageRepository {
       assignedVehicleId: 'assigned_vehicle_id',
       originDepotId: 'origin_depot_id',
       destinationDepotId: 'destination_depot_id',
+      originLatitude: 'origin_latitude',
+      originLongitude: 'origin_longitude',
+      destinationLatitude: 'destination_latitude',
+      destinationLongitude: 'destination_longitude',
     };
 
     for (const [key, value] of Object.entries(fields)) {
@@ -227,6 +250,10 @@ export class PackageRepository {
                  contents_description AS "contentsDescription",
                  current_status AS "currentStatus",
                  assigned_vehicle_id AS "assignedVehicleId",
+                 origin_latitude AS "originLatitude",
+                 origin_longitude AS "originLongitude",
+                 destination_latitude AS "destinationLatitude",
+                 destination_longitude AS "destinationLongitude",
                  created_at AS "createdAt", updated_at AS "updatedAt"`,
       params,
     );
@@ -247,6 +274,10 @@ export class PackageRepository {
               contents_description AS "contentsDescription",
               current_status AS "currentStatus",
               assigned_vehicle_id AS "assignedVehicleId",
+              origin_latitude AS "originLatitude",
+              origin_longitude AS "originLongitude",
+              destination_latitude AS "destinationLatitude",
+              destination_longitude AS "destinationLongitude",
               created_at AS "createdAt", updated_at AS "updatedAt"
        FROM packages WHERE id = $1`,
       [id],

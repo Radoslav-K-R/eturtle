@@ -65,6 +65,14 @@ packageRoutes.post(
       .withMessage('Height must be greater than 0'),
     body('contentsDescription').optional().isString().isLength({ max: 2000 })
       .withMessage('Contents description must be at most 2000 characters'),
+    body('originLatitude').optional().isFloat({ min: -90, max: 90 })
+      .withMessage('Origin latitude must be between -90 and 90'),
+    body('originLongitude').optional().isFloat({ min: -180, max: 180 })
+      .withMessage('Origin longitude must be between -180 and 180'),
+    body('destinationLatitude').optional().isFloat({ min: -90, max: 90 })
+      .withMessage('Destination latitude must be between -90 and 90'),
+    body('destinationLongitude').optional().isFloat({ min: -180, max: 180 })
+      .withMessage('Destination longitude must be between -180 and 180'),
   ],
   validateRequest,
   async (request: Request, response: Response, next: NextFunction): Promise<void> => {
@@ -95,6 +103,14 @@ packageRoutes.put(
       .withMessage('Height must be greater than 0'),
     body('contentsDescription').optional().isString().isLength({ max: 2000 })
       .withMessage('Contents description must be at most 2000 characters'),
+    body('originLatitude').optional().isFloat({ min: -90, max: 90 })
+      .withMessage('Origin latitude must be between -90 and 90'),
+    body('originLongitude').optional().isFloat({ min: -180, max: 180 })
+      .withMessage('Origin longitude must be between -180 and 180'),
+    body('destinationLatitude').optional().isFloat({ min: -90, max: 90 })
+      .withMessage('Destination latitude must be between -90 and 90'),
+    body('destinationLongitude').optional().isFloat({ min: -180, max: 180 })
+      .withMessage('Destination longitude must be between -180 and 180'),
   ],
   validateRequest,
   async (request: Request, response: Response, next: NextFunction): Promise<void> => {
