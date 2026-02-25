@@ -55,7 +55,7 @@ export class RouteGenerationService {
         originDepotId,
         destinationDepotId,
       );
-      await this.reorderStops(existingRoute.id, vehicle.currentDepotId);
+      await this.reorderStops(existingRoute.id);
       logger.info('Package added to existing route', {
         routeId: existingRoute.id,
         packageId,
@@ -75,18 +75,6 @@ export class RouteGenerationService {
 
     let stopOrder = 1;
 
-    // Add vehicle's home depot as first stop if it's different from
-    // both the pickup and dropoff depots — this creates trunk routes
-    // where the vehicle starts from its base and sweeps through the corridor.
-    const homeDepotId = vehicle.currentDepotId;
-    if (
-      homeDepotId &&
-      homeDepotId !== originDepotId &&
-      homeDepotId !== destinationDepotId
-    ) {
-      await this.routeRepository.addStop(route.id, homeDepotId, stopOrder++);
-    }
-
     const originStop = await this.routeRepository.addStop(route.id, originDepotId, stopOrder++);
 
     let dropoffStop = originStop;
@@ -105,11 +93,6 @@ export class RouteGenerationService {
       dropoffStop.id,
     );
 
-    // Reorder stops for optimal path when there are 3+ stops
-    if (stopOrder > 3) {
-      await this.reorderStops(route.id, homeDepotId);
-    }
-
     logger.info('Route generated', {
       routeId: route.id,
       vehicleId: vehicle.id,
@@ -127,20 +110,24 @@ export class RouteGenerationService {
     packageId: string,
     originDepotId: string,
     destinationDepotId: string,
-    vehicleDepotId: string | null,
   ): Promise<void> {
     await this.addToExistingRoute(routeId, packageId, originDepotId, destinationDepotId);
-    await this.reorderStops(routeId, vehicleDepotId);
+    await this.reorderStops(routeId);
     logger.info('Package consolidated into existing route', {
       routeId,
       packageId,
     });
   }
 
-  async reorderStops(
-    routeId: string,
-    startDepotId: string | null,
-  ): Promise<void> {
+  /**
+   * Reorder stops to minimize total distance while respecting
+   * pickup-before-dropoff constraints for every package.
+   *
+   * Uses nearest-neighbor heuristic starting from every possible stop,
+   * picks the permutation with the shortest total distance that still
+   * satisfies all precedence constraints.
+   */
+  async reorderStops(routeId: string): Promise<void> {
     const stops = await this.routeRepository.findStopsByRouteId(routeId);
     if (stops.length <= 2) {
       return;
@@ -156,85 +143,90 @@ export class RouteGenerationService {
       }
     }
 
-    const distanceMatrix = new Map<string, Map<string, number>>();
-    for (const stopA of stops) {
-      const depotA = depotMap.get(stopA.depotId);
-      if (!depotA) continue;
-      const row = new Map<string, number>();
-      for (const stopB of stops) {
-        if (stopA.id === stopB.id) {
-          row.set(stopB.id, 0);
-          continue;
-        }
-        const depotB = depotMap.get(stopB.depotId);
-        if (!depotB) continue;
-        row.set(
-          stopB.id,
-          haversineDistance(
-            Number(depotA.latitude),
-            Number(depotA.longitude),
-            Number(depotB.latitude),
-            Number(depotB.longitude),
-          ),
-        );
-      }
-      distanceMatrix.set(stopA.id, row);
-    }
+    // Build distance matrix
+    const dist = (a: RouteStop, b: RouteStop): number => {
+      const dA = depotMap.get(a.depotId);
+      const dB = depotMap.get(b.depotId);
+      if (!dA || !dB) return Infinity;
+      return haversineDistance(
+        Number(dA.latitude), Number(dA.longitude),
+        Number(dB.latitude), Number(dB.longitude),
+      );
+    };
 
-    let startStop = stops[0]!;
-    if (startDepotId) {
-      const found = stops.find((s) => s.depotId === startDepotId);
-      if (found) {
-        startStop = found;
-      }
-    }
-
-    const visited = new Set<string>([startStop.id]);
-    const ordered: RouteStop[] = [startStop];
-    let current = startStop;
-
-    while (visited.size < stops.length) {
-      let nearestStop: RouteStop | null = null;
-      let nearestDist = Infinity;
-
-      const currentDistances = distanceMatrix.get(current.id);
-      for (const stop of stops) {
-        if (visited.has(stop.id)) continue;
-        const dist = currentDistances?.get(stop.id) ?? Infinity;
-        if (dist < nearestDist) {
-          nearestDist = dist;
-          nearestStop = stop;
-        }
-      }
-
-      if (!nearestStop) break;
-      visited.add(nearestStop.id);
-      ordered.push(nearestStop);
-      current = nearestStop;
-    }
-
+    // Build precedence constraints: pickup stop must come before dropoff stop
     const routePackages = await this.routeRepository.findPackagesByRouteId(routeId);
-    const stopOrderMap = new Map(
-      ordered.map((stop, idx) => [stop.id, idx + 1]),
-    );
-
+    const mustPrecede: Array<{ before: string; after: string }> = [];
     for (const rp of routePackages) {
-      const pickupOrder = stopOrderMap.get(rp.pickupStopId) ?? 0;
-      const dropoffOrder = stopOrderMap.get(rp.dropoffStopId) ?? 0;
-      if (pickupOrder > dropoffOrder && rp.pickupStopId !== rp.dropoffStopId) {
-        const pickupIdx = ordered.findIndex((s) => s.id === rp.pickupStopId);
-        const dropoffIdx = ordered.findIndex((s) => s.id === rp.dropoffStopId);
-        if (pickupIdx > dropoffIdx && pickupIdx >= 0 && dropoffIdx >= 0) {
-          const [removed] = ordered.splice(pickupIdx, 1);
-          ordered.splice(dropoffIdx, 0, removed!);
-          for (let i = 0; i < ordered.length; i++) {
-            stopOrderMap.set(ordered[i]!.id, i + 1);
+      if (rp.pickupStopId !== rp.dropoffStopId) {
+        mustPrecede.push({ before: rp.pickupStopId, after: rp.dropoffStopId });
+      }
+    }
+
+    const satisfiesConstraints = (ordered: RouteStop[]): boolean => {
+      const posMap = new Map(ordered.map((s, i) => [s.id, i]));
+      for (const { before, after } of mustPrecede) {
+        const bPos = posMap.get(before);
+        const aPos = posMap.get(after);
+        if (bPos != null && aPos != null && bPos >= aPos) return false;
+      }
+      return true;
+    };
+
+    const totalDist = (ordered: RouteStop[]): number => {
+      let total = 0;
+      for (let i = 0; i < ordered.length - 1; i++) {
+        total += dist(ordered[i]!, ordered[i + 1]!);
+      }
+      return total;
+    };
+
+    // Try nearest-neighbor from each possible starting stop
+    let bestOrdering: RouteStop[] = stops;
+    let bestDist = Infinity;
+
+    for (const startStop of stops) {
+      const visited = new Set<string>([startStop.id]);
+      const ordered: RouteStop[] = [startStop];
+      let current = startStop;
+
+      while (visited.size < stops.length) {
+        let nearestStop: RouteStop | null = null;
+        let nearestD = Infinity;
+        for (const stop of stops) {
+          if (visited.has(stop.id)) continue;
+          const d = dist(current, stop);
+          if (d < nearestD) {
+            nearestD = d;
+            nearestStop = stop;
           }
         }
+        if (!nearestStop) break;
+        visited.add(nearestStop.id);
+        ordered.push(nearestStop);
+        current = nearestStop;
+      }
+
+      // Fix constraint violations by moving pickup stops before their dropoffs
+      for (const { before, after } of mustPrecede) {
+        const pickupIdx = ordered.findIndex((s) => s.id === before);
+        const dropoffIdx = ordered.findIndex((s) => s.id === after);
+        if (pickupIdx >= 0 && dropoffIdx >= 0 && pickupIdx > dropoffIdx) {
+          const [removed] = ordered.splice(pickupIdx, 1);
+          ordered.splice(dropoffIdx, 0, removed!);
+        }
+      }
+
+      if (satisfiesConstraints(ordered)) {
+        const d = totalDist(ordered);
+        if (d < bestDist) {
+          bestDist = d;
+          bestOrdering = ordered;
+        }
       }
     }
 
-    const ordering = ordered.map((stop, idx) => ({
+    const ordering = bestOrdering.map((stop, idx) => ({
       stopId: stop.id,
       stopOrder: idx + 1,
     }));

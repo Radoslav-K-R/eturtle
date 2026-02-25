@@ -193,7 +193,18 @@ export class PackageAssignmentService {
 
   /**
    * Phase 1: Try to add the package to an existing pending route.
-   * Evaluates detour cost for each route and picks the most efficient.
+   *
+   * Two strategies:
+   * A) Both stops already exist on the route → almost free, high score.
+   * B) Corridor alignment — the new package's origin→destination vector
+   *    is roughly parallel to the route's overall direction. This allows
+   *    a Gabrovo→Sofia route to absorb a Varna→Sofia package (Varna is
+   *    upstream in the same corridor), or a Varna→Sofia route to absorb
+   *    a Gabrovo→Sofia package (Gabrovo is on the way).
+   *
+   * We measure corridor fit by comparing the merged route distance
+   * against the sum of (existing route + new package) done separately.
+   * If merging is shorter than two separate routes, it's a good merge.
    */
   private async tryConsolidateIntoExistingRoute(
     pkg: Package,
@@ -206,6 +217,11 @@ export class PackageAssignmentService {
     const today = new Date().toISOString().split('T')[0]!;
     const pendingRoutes = await this.routeRepository.findAllPendingForDate(today);
     if (pendingRoutes.length === 0) return null;
+
+    const newPkgDist = haversineDistance(
+      Number(originDepot.latitude), Number(originDepot.longitude),
+      Number(destinationDepot.latitude), Number(destinationDepot.longitude),
+    );
 
     let bestRoute: Route | null = null;
     let bestScore = -Infinity;
@@ -223,7 +239,7 @@ export class PackageAssignmentService {
         continue;
       }
 
-      // Get route stop depots
+      // Get route stop depots in order
       const stops = await this.routeRepository.findStopsByRouteId(route.id);
       const stopDepots = stops
         .map((s) => depotMap.get(s.depotId))
@@ -233,7 +249,7 @@ export class PackageAssignmentService {
       const hasOrigin = stops.some((s) => s.depotId === originDepot.id);
       const hasDest = stops.some((s) => s.depotId === destinationDepot.id);
 
-      // Both stops already in route — almost free to add
+      // Strategy A: Both stops already in route — almost free
       if (hasOrigin && hasDest) {
         const score = EXISTING_ROUTE_BONUS * 2;
         if (score > bestScore) {
@@ -244,18 +260,22 @@ export class PackageAssignmentService {
         continue;
       }
 
-      // Compute detour cost from inserting new depot stops
+      // Strategy B: Corridor merge — compute merged route distance
+      // and compare against doing them separately.
       const currentDist = computeRouteDistance(stopDepots);
-      const newStopDepots = [...stopDepots];
+      const separateDist = currentDist + newPkgDist;
+
+      // Build merged depot list: insert new depots at optimal positions
+      const mergedDepots = [...stopDepots];
       const depotsToInsert: Depot[] = [];
       if (!hasOrigin) depotsToInsert.push(originDepot);
       if (!hasDest) depotsToInsert.push(destinationDepot);
 
       for (const depot of depotsToInsert) {
-        let bestPos = newStopDepots.length;
+        let bestPos = mergedDepots.length;
         let bestPosDist = Infinity;
-        for (let i = 0; i <= newStopDepots.length; i++) {
-          const trial = [...newStopDepots];
+        for (let i = 0; i <= mergedDepots.length; i++) {
+          const trial = [...mergedDepots];
           trial.splice(i, 0, depot);
           const trialDist = computeRouteDistance(trial);
           if (trialDist < bestPosDist) {
@@ -263,16 +283,33 @@ export class PackageAssignmentService {
             bestPos = i;
           }
         }
-        newStopDepots.splice(bestPos, 0, depot);
+        mergedDepots.splice(bestPos, 0, depot);
       }
 
-      const newDist = computeRouteDistance(newStopDepots);
-      const detourDist = newDist - currentDist;
-      const detourRatio = currentDist > 0 ? detourDist / currentDist : detourDist;
+      const mergedDist = computeRouteDistance(mergedDepots);
 
-      if (detourRatio > MAX_DETOUR_RATIO) continue;
+      // If the merged route is longer than doing both separately,
+      // the routes don't share a corridor — skip.
+      if (mergedDist > separateDist) continue;
 
-      const score = EXISTING_ROUTE_BONUS / (1 + detourRatio);
+      // Score: how much distance we save by merging (0→1 scale).
+      // savings = 1.0 means we save 100% of the new package distance.
+      const savings = separateDist > 0
+        ? (separateDist - mergedDist) / separateDist
+        : 0;
+
+      const score = EXISTING_ROUTE_BONUS * (1 + savings);
+
+      logger.info('Consolidation candidate', {
+        routeId: route.id,
+        vehiclePlate: vehicle.licensePlate,
+        currentDist: currentDist.toFixed(1),
+        mergedDist: mergedDist.toFixed(1),
+        separateDist: separateDist.toFixed(1),
+        savings: savings.toFixed(3),
+        score: score.toFixed(3),
+      });
+
       if (score > bestScore) {
         bestScore = score;
         bestRoute = route;
@@ -286,7 +323,6 @@ export class PackageAssignmentService {
         pkg.id,
         originDepot.id,
         destinationDepot.id,
-        bestVehicle.currentDepotId,
       );
       return bestVehicle;
     }
