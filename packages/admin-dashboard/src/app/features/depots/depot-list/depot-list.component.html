@@ -22,6 +22,16 @@
     >Hubs</button>
   </div>
 
+  <div class="depot-list__map-container" #mapContainer></div>
+  <div class="depot-list__legend">
+    <span class="depot-list__legend-item">
+      <span class="depot-list__legend-dot depot-list__legend-dot--depot"></span> Depot
+    </span>
+    <span class="depot-list__legend-item">
+      <span class="depot-list__legend-dot depot-list__legend-dot--hub"></span> Hub
+    </span>
+  </div>
+
   @if (isLoading) { <p>Loading...</p> }
 
   <table class="depot-list__table">

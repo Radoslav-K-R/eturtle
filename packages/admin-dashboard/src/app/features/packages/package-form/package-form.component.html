@@ -7,17 +7,59 @@
   }
 
   <form [formGroup]="packageForm" (ngSubmit)="onSubmit()" class="package-form__form">
+    <h3 class="package-form__section-title">Origin</h3>
     <div class="package-form__row">
       <div class="package-form__field">
-        <label>Origin Address</label>
-        <input formControlName="originAddress" placeholder="Enter origin address" />
+        <label>City</label>
+        <app-city-autocomplete
+          formControlName="originCity"
+          (citySelected)="onOriginCitySelected($event)"
+        ></app-city-autocomplete>
       </div>
       <div class="package-form__field">
-        <label>Destination Address</label>
-        <input formControlName="destinationAddress" placeholder="Enter destination address" />
+        <label>Address</label>
+        <input formControlName="originAddress" placeholder="Enter origin address" (blur)="onOriginAddressBlur()" />
+        @if (originGeocoding) {
+          <span class="package-form__geocoding">Resolving coordinates...</span>
+        }
       </div>
     </div>
+    @if (originLat !== null && originLng !== null) {
+      <div class="package-form__resolved">
+        Coordinates: {{ originLat | number:'1.3-3' }}, {{ originLng | number:'1.3-3' }}
+        @if (originNearest) {
+          &middot; Nearest: {{ originNearest.name }} ({{ originNearest.distanceKm | number:'1.1-1' }} km)
+        }
+      </div>
+    }
 
+    <h3 class="package-form__section-title">Destination</h3>
+    <div class="package-form__row">
+      <div class="package-form__field">
+        <label>City</label>
+        <app-city-autocomplete
+          formControlName="destinationCity"
+          (citySelected)="onDestinationCitySelected($event)"
+        ></app-city-autocomplete>
+      </div>
+      <div class="package-form__field">
+        <label>Address</label>
+        <input formControlName="destinationAddress" placeholder="Enter destination address" (blur)="onDestinationAddressBlur()" />
+        @if (destinationGeocoding) {
+          <span class="package-form__geocoding">Resolving coordinates...</span>
+        }
+      </div>
+    </div>
+    @if (destLat !== null && destLng !== null) {
+      <div class="package-form__resolved">
+        Coordinates: {{ destLat | number:'1.3-3' }}, {{ destLng | number:'1.3-3' }}
+        @if (destinationNearest) {
+          &middot; Nearest: {{ destinationNearest.name }} ({{ destinationNearest.distanceKm | number:'1.1-1' }} km)
+        }
+      </div>
+    }
+
+    <h3 class="package-form__section-title">Dimensions</h3>
     <div class="package-form__row">
       <div class="package-form__field">
         <label>Weight (kg)</label>
@@ -34,25 +76,6 @@
       <div class="package-form__field">
         <label>Height (cm)</label>
         <input type="number" formControlName="heightCm" step="0.01" />
-      </div>
-    </div>
-
-    <div class="package-form__row">
-      <div class="package-form__field">
-        <label>Origin Latitude</label>
-        <input type="number" formControlName="originLatitude" step="0.0000001" placeholder="e.g. 42.6977" />
-      </div>
-      <div class="package-form__field">
-        <label>Origin Longitude</label>
-        <input type="number" formControlName="originLongitude" step="0.0000001" placeholder="e.g. 23.3219" />
-      </div>
-      <div class="package-form__field">
-        <label>Destination Latitude</label>
-        <input type="number" formControlName="destinationLatitude" step="0.0000001" placeholder="e.g. 43.2141" />
-      </div>
-      <div class="package-form__field">
-        <label>Destination Longitude</label>
-        <input type="number" formControlName="destinationLongitude" step="0.0000001" placeholder="e.g. 27.9147" />
       </div>
     </div>
 

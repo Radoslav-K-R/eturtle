@@ -19,8 +19,6 @@ export class DepotFormComponent implements OnDestroy {
   depotForm: FormGroup;
   isSubmitting = false;
   errorMessage = '';
-  resolvedLatitude: number | null = null;
-  resolvedLongitude: number | null = null;
   isGeocoding = false;
   private readonly destroy$ = new Subject<void>();
 
@@ -45,8 +43,6 @@ export class DepotFormComponent implements OnDestroy {
       latitude: city.latitude,
       longitude: city.longitude,
     });
-    this.resolvedLatitude = city.latitude;
-    this.resolvedLongitude = city.longitude;
   }
 
   onAddressBlur(): void {
@@ -66,8 +62,6 @@ export class DepotFormComponent implements OnDestroy {
               latitude: result.latitude,
               longitude: result.longitude,
             });
-            this.resolvedLatitude = result.latitude;
-            this.resolvedLongitude = result.longitude;
           }
         },
         error: () => { this.isGeocoding = false; },
