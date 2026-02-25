@@ -242,13 +242,34 @@ export class RouteRepository {
     routeId: string,
     ordering: { stopId: string; stopOrder: number }[],
   ): Promise<void> {
+    if (ordering.length === 0) return;
     const pool = getPool();
+    const offset = 10000;
+
+    const whenClause = ordering
+      .map((_, i) => `WHEN id = $${i * 2 + 2} THEN $${i * 2 + 3}::integer`)
+      .join(' ');
+    const ids = ordering.map((_, i) => `$${i * 2 + 2}`).join(', ');
+
+    // Phase 1: shift all to high temporary values to avoid unique constraint conflicts
+    const tempParams: (string | number)[] = [routeId];
     for (const { stopId, stopOrder } of ordering) {
-      await pool.query(
-        `UPDATE route_stops SET stop_order = $1 WHERE id = $2 AND route_id = $3`,
-        [stopOrder, stopId, routeId],
-      );
+      tempParams.push(stopId, stopOrder + offset);
     }
+    await pool.query(
+      `UPDATE route_stops SET stop_order = CASE ${whenClause} END WHERE route_id = $1 AND id IN (${ids})`,
+      tempParams,
+    );
+
+    // Phase 2: set to the real values
+    const realParams: (string | number)[] = [routeId];
+    for (const { stopId, stopOrder } of ordering) {
+      realParams.push(stopId, stopOrder);
+    }
+    await pool.query(
+      `UPDATE route_stops SET stop_order = CASE ${whenClause} END WHERE route_id = $1 AND id IN (${ids})`,
+      realParams,
+    );
   }
 
   async findByVehicleAndDate(vehicleId: string, routeDate: string): Promise<Route | null> {
