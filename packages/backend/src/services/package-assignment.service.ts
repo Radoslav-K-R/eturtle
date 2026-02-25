@@ -5,58 +5,31 @@ import { RouteRepository } from '../repositories/route.repository.js';
 import { Depot } from '../models/depot.model.js';
 import { Vehicle } from '../models/vehicle.model.js';
 import { Package } from '../models/package.model.js';
+import { Route } from '../models/route.model.js';
 import { PACKAGE_STATUSES } from '../config/constants.js';
 import { logger } from '../utils/logger.js';
 import { RouteGenerationService } from './route-generation.service.js';
 
 const EARTH_RADIUS_KM = 6371;
 const DEGREES_TO_RADIANS = Math.PI / 180;
-const CAPACITY_WEIGHT = 0.4;
-const DIRECTION_WEIGHT = 0.6;
-const INTER_DEPOT_DETOUR_FACTOR = 1.5;
+const LONG_ROUTE_THRESHOLD_KM = 50;
+const MAX_DETOUR_RATIO = 0.5;
+const EXISTING_ROUTE_BONUS = 1.3;
 
 function haversineDistance(
-  latitude1: number,
-  longitude1: number,
-  latitude2: number,
-  longitude2: number,
-): number {
-  const deltaLatitude = (latitude2 - latitude1) * DEGREES_TO_RADIANS;
-  const deltaLongitude = (longitude2 - longitude1) * DEGREES_TO_RADIANS;
-  const halfChordSquared =
-    Math.sin(deltaLatitude / 2) * Math.sin(deltaLatitude / 2) +
-    Math.cos(latitude1 * DEGREES_TO_RADIANS) *
-    Math.cos(latitude2 * DEGREES_TO_RADIANS) *
-    Math.sin(deltaLongitude / 2) * Math.sin(deltaLongitude / 2);
-  const angularDistance = 2 * Math.atan2(
-    Math.sqrt(halfChordSquared),
-    Math.sqrt(1 - halfChordSquared),
-  );
-  return EARTH_RADIUS_KM * angularDistance;
-}
-
-function computeBearing(
   lat1: number,
   lng1: number,
   lat2: number,
   lng2: number,
 ): number {
-  const lat1Rad = lat1 * DEGREES_TO_RADIANS;
-  const lat2Rad = lat2 * DEGREES_TO_RADIANS;
-  const deltaLng = (lng2 - lng1) * DEGREES_TO_RADIANS;
-  const y = Math.sin(deltaLng) * Math.cos(lat2Rad);
-  const x =
-    Math.cos(lat1Rad) * Math.sin(lat2Rad) -
-    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(deltaLng);
-  return Math.atan2(y, x);
-}
-
-function bearingSimilarity(bearing1: number, bearing2: number): number {
-  let diff = Math.abs(bearing1 - bearing2);
-  if (diff > Math.PI) {
-    diff = 2 * Math.PI - diff;
-  }
-  return 1 - diff / Math.PI;
+  const dLat = (lat2 - lat1) * DEGREES_TO_RADIANS;
+  const dLng = (lng2 - lng1) * DEGREES_TO_RADIANS;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * DEGREES_TO_RADIANS) *
+    Math.cos(lat2 * DEGREES_TO_RADIANS) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 function findNearestDepot(
@@ -64,23 +37,34 @@ function findNearestDepot(
   longitude: number,
   depots: Depot[],
 ): Depot | null {
-  let nearestDepot: Depot | null = null;
-  let minimumDistance = Infinity;
-
+  let nearest: Depot | null = null;
+  let minDist = Infinity;
   for (const depot of depots) {
-    const distance = haversineDistance(
+    const dist = haversineDistance(
       latitude,
       longitude,
       Number(depot.latitude),
       Number(depot.longitude),
     );
-    if (distance < minimumDistance) {
-      minimumDistance = distance;
-      nearestDepot = depot;
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = depot;
     }
   }
+  return nearest;
+}
 
-  return nearestDepot;
+function computeRouteDistance(depots: Depot[]): number {
+  let total = 0;
+  for (let i = 0; i < depots.length - 1; i++) {
+    total += haversineDistance(
+      Number(depots[i]!.latitude),
+      Number(depots[i]!.longitude),
+      Number(depots[i + 1]!.latitude),
+      Number(depots[i + 1]!.longitude),
+    );
+  }
+  return total;
 }
 
 export class PackageAssignmentService {
@@ -111,6 +95,8 @@ export class PackageAssignmentService {
       return null;
     }
 
+    const depotMap = new Map(allDepots.map((d) => [d.id, d]));
+
     const originDepot = this.resolveOriginDepot(pkg, allDepots);
     const destinationDepot = this.resolveDestinationDepot(pkg, allDepots, originDepot);
 
@@ -130,28 +116,47 @@ export class PackageAssignmentService {
       return null;
     }
 
-    let availableVehicles = await this.vehicleRepository.findAvailableAtDepot(
-      originDepot.id,
+    const packageDist = destinationDepot
+      ? haversineDistance(
+          Number(originDepot.latitude),
+          Number(originDepot.longitude),
+          Number(destinationDepot.latitude),
+          Number(destinationDepot.longitude),
+        )
+      : 0;
+
+    // Phase 1: Try consolidating into an existing pending route
+    const consolidatedVehicle = await this.tryConsolidateIntoExistingRoute(
+      pkg,
+      originDepot,
+      destinationDepot,
+      depotMap,
     );
-
-    let bestVehicle: Vehicle | null = null;
-
-    if (availableVehicles.length > 0) {
-      bestVehicle = await this.findBestFitVehicle(
-        availableVehicles,
-        pkg,
-        originDepot,
-        destinationDepot,
+    if (consolidatedVehicle) {
+      await this.packageRepository.updateFields(packageId, {
+        assignedVehicleId: consolidatedVehicle.id,
+      });
+      await this.packageRepository.updateStatus(
+        packageId,
+        PACKAGE_STATUSES.ASSIGNED,
+        null,
+        `Consolidated into existing route on vehicle ${consolidatedVehicle.licensePlate}`,
       );
+      logger.info('Package consolidated into existing route', {
+        packageId,
+        vehicleId: consolidatedVehicle.id,
+      });
+      return consolidatedVehicle;
     }
 
-    if (!bestVehicle) {
-      bestVehicle = await this.tryInterDepotAssignment(
-        pkg,
-        originDepot,
-        allDepots,
-      );
-    }
+    // Phase 2: Find best vehicle globally for a new trunk route
+    const bestVehicle = await this.findBestVehicleGlobally(
+      pkg,
+      originDepot,
+      destinationDepot,
+      packageDist,
+      depotMap,
+    );
 
     if (!bestVehicle) {
       logger.info('No vehicle with sufficient capacity at any depot', { packageId });
@@ -186,6 +191,234 @@ export class PackageAssignmentService {
     return bestVehicle;
   }
 
+  /**
+   * Phase 1: Try to add the package to an existing pending route.
+   * Evaluates detour cost for each route and picks the most efficient.
+   */
+  private async tryConsolidateIntoExistingRoute(
+    pkg: Package,
+    originDepot: Depot,
+    destinationDepot: Depot | null,
+    depotMap: Map<string, Depot>,
+  ): Promise<Vehicle | null> {
+    if (!destinationDepot) return null;
+
+    const today = new Date().toISOString().split('T')[0]!;
+    const pendingRoutes = await this.routeRepository.findAllPendingForDate(today);
+    if (pendingRoutes.length === 0) return null;
+
+    let bestRoute: Route | null = null;
+    let bestScore = -Infinity;
+    let bestVehicle: Vehicle | null = null;
+
+    for (const route of pendingRoutes) {
+      const vehicle = await this.vehicleRepository.findRawById(route.vehicleId);
+      if (!vehicle) continue;
+
+      // Check capacity
+      const load = await this.packageRepository.getVehicleLoad(route.vehicleId);
+      const remainingWeight = Number(vehicle.weightCapacityKg) - load.totalWeightKg;
+      const remainingVolume = Number(vehicle.volumeCapacityCbm) - load.totalVolumeCbm;
+      if (Number(pkg.weightKg) > remainingWeight || Number(pkg.volumeCbm) > remainingVolume) {
+        continue;
+      }
+
+      // Get route stop depots
+      const stops = await this.routeRepository.findStopsByRouteId(route.id);
+      const stopDepots = stops
+        .map((s) => depotMap.get(s.depotId))
+        .filter((d): d is Depot => d != null);
+      if (stopDepots.length < 1) continue;
+
+      const hasOrigin = stops.some((s) => s.depotId === originDepot.id);
+      const hasDest = stops.some((s) => s.depotId === destinationDepot.id);
+
+      // Both stops already in route — almost free to add
+      if (hasOrigin && hasDest) {
+        const score = EXISTING_ROUTE_BONUS * 2;
+        if (score > bestScore) {
+          bestScore = score;
+          bestRoute = route;
+          bestVehicle = vehicle;
+        }
+        continue;
+      }
+
+      // Compute detour cost from inserting new depot stops
+      const currentDist = computeRouteDistance(stopDepots);
+      const newStopDepots = [...stopDepots];
+      const depotsToInsert: Depot[] = [];
+      if (!hasOrigin) depotsToInsert.push(originDepot);
+      if (!hasDest) depotsToInsert.push(destinationDepot);
+
+      for (const depot of depotsToInsert) {
+        let bestPos = newStopDepots.length;
+        let bestPosDist = Infinity;
+        for (let i = 0; i <= newStopDepots.length; i++) {
+          const trial = [...newStopDepots];
+          trial.splice(i, 0, depot);
+          const trialDist = computeRouteDistance(trial);
+          if (trialDist < bestPosDist) {
+            bestPosDist = trialDist;
+            bestPos = i;
+          }
+        }
+        newStopDepots.splice(bestPos, 0, depot);
+      }
+
+      const newDist = computeRouteDistance(newStopDepots);
+      const detourDist = newDist - currentDist;
+      const detourRatio = currentDist > 0 ? detourDist / currentDist : detourDist;
+
+      if (detourRatio > MAX_DETOUR_RATIO) continue;
+
+      const score = EXISTING_ROUTE_BONUS / (1 + detourRatio);
+      if (score > bestScore) {
+        bestScore = score;
+        bestRoute = route;
+        bestVehicle = vehicle;
+      }
+    }
+
+    if (bestRoute && bestVehicle) {
+      await this.routeGenerationService.addPackageToExistingRoute(
+        bestRoute.id,
+        pkg.id,
+        originDepot.id,
+        destinationDepot.id,
+        bestVehicle.currentDepotId,
+      );
+      return bestVehicle;
+    }
+
+    return null;
+  }
+
+  /**
+   * Phase 2: Score ALL available vehicles globally.
+   *
+   * For long-distance packages, prefers depot trucks that form linear
+   * trunk corridors (e.g. Varna → Gabrovo → Sofia) over local hub vehicles.
+   *
+   * Scoring:
+   *  - sweepScore (45%): How linear is home→origin→dest? (1.0 = perfectly on the way)
+   *  - trunkScore (40%): Depot trucks for long routes, hub vans for short
+   *  - capacityScore (15%): Can the vehicle carry the package?
+   */
+  private async findBestVehicleGlobally(
+    pkg: Package,
+    originDepot: Depot,
+    destinationDepot: Depot | null,
+    packageDist: number,
+    depotMap: Map<string, Depot>,
+  ): Promise<Vehicle | null> {
+    const allVehicles = await this.vehicleRepository.findAllAvailableWithDrivers();
+    if (allVehicles.length === 0) return null;
+
+    let bestVehicle: Vehicle | null = null;
+    let bestScore = -Infinity;
+    const isLongRoute = packageDist > LONG_ROUTE_THRESHOLD_KM;
+
+    for (const vehicle of allVehicles) {
+      // Check capacity
+      const load = await this.packageRepository.getVehicleLoad(vehicle.id);
+      const remainingWeight = Number(vehicle.weightCapacityKg) - load.totalWeightKg;
+      const remainingVolume = Number(vehicle.volumeCapacityCbm) - load.totalVolumeCbm;
+      if (Number(pkg.weightKg) > remainingWeight || Number(pkg.volumeCbm) > remainingVolume) {
+        continue;
+      }
+
+      const homeDepot = depotMap.get(vehicle.currentDepotId ?? '');
+      if (!homeDepot) continue;
+
+      // --- SWEEP SCORE ---
+      // How linear is the path home → origin → destination?
+      // High score = the vehicle's home depot is behind the origin in the
+      // direction of the destination, forming a natural trunk corridor.
+      let sweepScore: number;
+      if (!destinationDepot || originDepot.id === destinationDepot.id) {
+        const approachDist = haversineDistance(
+          Number(homeDepot.latitude),
+          Number(homeDepot.longitude),
+          Number(originDepot.latitude),
+          Number(originDepot.longitude),
+        );
+        sweepScore = 1 / (1 + approachDist / 100);
+      } else if (homeDepot.id === originDepot.id) {
+        // Vehicle is AT the origin — decent but doesn't extend the corridor
+        sweepScore = 0.7;
+      } else {
+        const totalRoute = haversineDistance(
+          Number(homeDepot.latitude),
+          Number(homeDepot.longitude),
+          Number(originDepot.latitude),
+          Number(originDepot.longitude),
+        ) + packageDist;
+
+        const homeToEnd = haversineDistance(
+          Number(homeDepot.latitude),
+          Number(homeDepot.longitude),
+          Number(destinationDepot.latitude),
+          Number(destinationDepot.longitude),
+        );
+
+        if (homeToEnd < 10) {
+          // Round trip (home ≈ destination) — penalize heavily
+          sweepScore = 0.2;
+        } else {
+          // Linearity: if home→origin→dest is a straight line,
+          // homeToEnd ≈ totalRoute, ratio → 1.0
+          sweepScore = totalRoute > 0 ? homeToEnd / totalRoute : 0;
+        }
+      }
+
+      // --- TRUNK SCORE ---
+      // For long routes: prefer depot-type + truck (trunk vehicles)
+      // For short routes: prefer hub-type + van/motorcycle (last-mile)
+      let trunkScore: number;
+      if (isLongRoute) {
+        const isDepotType = homeDepot.type === 'depot';
+        const isTruck = vehicle.type === 'truck';
+        if (isDepotType && isTruck) trunkScore = 1.0;
+        else if (isDepotType) trunkScore = 0.7;
+        else if (isTruck) trunkScore = 0.6;
+        else trunkScore = 0.3;
+      } else {
+        const isHub = homeDepot.type === 'hub';
+        if (isHub) trunkScore = 0.9;
+        else trunkScore = 0.5;
+      }
+
+      // --- CAPACITY SCORE ---
+      const capacityRatio = Number(pkg.weightKg) / Number(vehicle.weightCapacityKg);
+      const capacityScore = Math.min(1.0, capacityRatio * 5);
+
+      // --- FINAL SCORE ---
+      const score =
+        sweepScore * 0.45 +
+        trunkScore * 0.40 +
+        capacityScore * 0.15;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestVehicle = vehicle;
+      }
+    }
+
+    if (bestVehicle) {
+      const homeDepot = depotMap.get(bestVehicle.currentDepotId ?? '');
+      logger.info('Best vehicle selected globally', {
+        vehicleId: bestVehicle.id,
+        licensePlate: bestVehicle.licensePlate,
+        homeDepot: homeDepot?.name,
+        score: bestScore.toFixed(3),
+        isLongRoute,
+      });
+    }
+
+    return bestVehicle;
+  }
+
   private resolveOriginDepot(
     pkg: Package,
     depots: Depot[],
@@ -200,7 +433,7 @@ export class PackageAssignmentService {
         depots,
       );
     }
-    return this.resolveDepotWithCapacitySync(depots);
+    return depots.length > 0 ? depots[0]! : null;
   }
 
   private resolveDestinationDepot(
@@ -226,199 +459,5 @@ export class PackageAssignmentService {
       return remainingDepots[Math.floor(Math.random() * remainingDepots.length)]!;
     }
     return originDepot;
-  }
-
-  private resolveDepotWithCapacitySync(depots: Depot[]): Depot | null {
-    return depots.length > 0 ? depots[0]! : null;
-  }
-
-  private async findBestFitVehicle(
-    vehicles: Vehicle[],
-    pkg: Package,
-    originDepot: Depot,
-    destinationDepot: Depot | null,
-  ): Promise<Vehicle | null> {
-    let bestVehicle: Vehicle | null = null;
-    let bestScore = -Infinity;
-
-    const packageWeight = Number(pkg.weightKg);
-    const packageVolume = Number(pkg.volumeCbm);
-
-    let packageBearing: number | null = null;
-    if (
-      destinationDepot &&
-      originDepot.id !== destinationDepot.id
-    ) {
-      packageBearing = computeBearing(
-        Number(originDepot.latitude),
-        Number(originDepot.longitude),
-        Number(destinationDepot.latitude),
-        Number(destinationDepot.longitude),
-      );
-    }
-
-    for (const vehicle of vehicles) {
-      const load = await this.packageRepository.getVehicleLoad(vehicle.id);
-
-      const remainingWeight = Number(vehicle.weightCapacityKg) - load.totalWeightKg;
-      const remainingVolume = Number(vehicle.volumeCapacityCbm) - load.totalVolumeCbm;
-
-      if (packageWeight > remainingWeight || packageVolume > remainingVolume) {
-        continue;
-      }
-
-      const capacityScore =
-        1 -
-        ((remainingWeight - packageWeight) / Number(vehicle.weightCapacityKg) +
-          (remainingVolume - packageVolume) / Number(vehicle.volumeCapacityCbm)) /
-          2;
-
-      let directionScore = 0.5;
-      if (packageBearing != null) {
-        directionScore = await this.computeDirectionScore(
-          vehicle.id,
-          originDepot,
-          packageBearing,
-        );
-      }
-
-      const score =
-        CAPACITY_WEIGHT * capacityScore + DIRECTION_WEIGHT * directionScore;
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestVehicle = vehicle;
-      }
-    }
-
-    return bestVehicle;
-  }
-
-  private async computeDirectionScore(
-    vehicleId: string,
-    originDepot: Depot,
-    packageBearing: number,
-  ): Promise<number> {
-    const today = new Date().toISOString().split('T')[0]!;
-    const existingRoute = await this.routeRepository.findByVehicleAndDate(
-      vehicleId,
-      today,
-    );
-
-    if (!existingRoute) {
-      return 0.5;
-    }
-
-    const stops = await this.routeRepository.findStopsByRouteId(existingRoute.id);
-    if (stops.length < 2) {
-      return 0.5;
-    }
-
-    const allDepots = await this.depotRepository.findAllActive();
-    const depotMap = new Map(allDepots.map((d) => [d.id, d]));
-
-    let totalSimilarity = 0;
-    let comparisons = 0;
-
-    for (let i = 0; i < stops.length - 1; i++) {
-      const fromDepot = depotMap.get(stops[i]!.depotId);
-      const toDepot = depotMap.get(stops[i + 1]!.depotId);
-      if (fromDepot && toDepot) {
-        const existingBearing = computeBearing(
-          Number(fromDepot.latitude),
-          Number(fromDepot.longitude),
-          Number(toDepot.latitude),
-          Number(toDepot.longitude),
-        );
-        totalSimilarity += bearingSimilarity(packageBearing, existingBearing);
-        comparisons++;
-      }
-    }
-
-    return comparisons > 0 ? totalSimilarity / comparisons : 0.5;
-  }
-
-  private async tryInterDepotAssignment(
-    pkg: Package,
-    originDepot: Depot,
-    allDepots: Depot[],
-  ): Promise<Vehicle | null> {
-    const nearbyDepots = allDepots
-      .filter((d) => d.id !== originDepot.id)
-      .map((d) => ({
-        depot: d,
-        distance: haversineDistance(
-          Number(originDepot.latitude),
-          Number(originDepot.longitude),
-          Number(d.latitude),
-          Number(d.longitude),
-        ),
-      }))
-      .sort((a, b) => a.distance - b.distance);
-
-    const today = new Date().toISOString().split('T')[0]!;
-
-    for (const { depot: nearbyDepot, distance: detourDistance } of nearbyDepots) {
-      const vehicles = await this.vehicleRepository.findAvailableAtDepot(
-        nearbyDepot.id,
-      );
-
-      for (const vehicle of vehicles) {
-        const load = await this.packageRepository.getVehicleLoad(vehicle.id);
-        const remainingWeight =
-          Number(vehicle.weightCapacityKg) - load.totalWeightKg;
-        const remainingVolume =
-          Number(vehicle.volumeCapacityCbm) - load.totalVolumeCbm;
-
-        if (
-          Number(pkg.weightKg) > remainingWeight ||
-          Number(pkg.volumeCbm) > remainingVolume
-        ) {
-          continue;
-        }
-
-        const existingRoute = await this.routeRepository.findByVehicleAndDate(
-          vehicle.id,
-          today,
-        );
-        if (!existingRoute) {
-          continue;
-        }
-
-        const stops = await this.routeRepository.findStopsByRouteId(
-          existingRoute.id,
-        );
-        if (stops.length === 0) {
-          continue;
-        }
-
-        let routeLength = 0;
-        const allDepotsMap = new Map(allDepots.map((d) => [d.id, d]));
-        for (let i = 0; i < stops.length - 1; i++) {
-          const fromDepot = allDepotsMap.get(stops[i]!.depotId);
-          const toDepot = allDepotsMap.get(stops[i + 1]!.depotId);
-          if (fromDepot && toDepot) {
-            routeLength += haversineDistance(
-              Number(fromDepot.latitude),
-              Number(fromDepot.longitude),
-              Number(toDepot.latitude),
-              Number(toDepot.longitude),
-            );
-          }
-        }
-
-        if (detourDistance <= routeLength * INTER_DEPOT_DETOUR_FACTOR || routeLength === 0) {
-          logger.info('Inter-depot assignment: using vehicle from nearby depot', {
-            packageId: pkg.id,
-            vehicleId: vehicle.id,
-            nearbyDepotId: nearbyDepot.id,
-            detourDistance,
-          });
-          return vehicle;
-        }
-      }
-    }
-
-    return null;
   }
 }

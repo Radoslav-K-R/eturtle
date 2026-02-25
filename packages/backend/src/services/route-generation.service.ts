@@ -73,14 +73,28 @@ export class RouteGenerationService {
 
     const route = await this.routeRepository.create(vehicle.id, driverId, today);
 
-    const originStop = await this.routeRepository.addStop(route.id, originDepotId, 1);
+    let stopOrder = 1;
+
+    // Add vehicle's home depot as first stop if it's different from
+    // both the pickup and dropoff depots — this creates trunk routes
+    // where the vehicle starts from its base and sweeps through the corridor.
+    const homeDepotId = vehicle.currentDepotId;
+    if (
+      homeDepotId &&
+      homeDepotId !== originDepotId &&
+      homeDepotId !== destinationDepotId
+    ) {
+      await this.routeRepository.addStop(route.id, homeDepotId, stopOrder++);
+    }
+
+    const originStop = await this.routeRepository.addStop(route.id, originDepotId, stopOrder++);
 
     let dropoffStop = originStop;
     if (destinationDepotId !== originDepotId) {
       dropoffStop = await this.routeRepository.addStop(
         route.id,
         destinationDepotId,
-        2,
+        stopOrder++,
       );
     }
 
@@ -91,9 +105,34 @@ export class RouteGenerationService {
       dropoffStop.id,
     );
 
+    // Reorder stops for optimal path when there are 3+ stops
+    if (stopOrder > 3) {
+      await this.reorderStops(route.id, homeDepotId);
+    }
+
     logger.info('Route generated', {
       routeId: route.id,
       vehicleId: vehicle.id,
+      packageId,
+      stopCount: stopOrder - 1,
+    });
+  }
+
+  /**
+   * Public method for the assignment service to add a package to
+   * an already-identified existing route (from the consolidation phase).
+   */
+  async addPackageToExistingRoute(
+    routeId: string,
+    packageId: string,
+    originDepotId: string,
+    destinationDepotId: string,
+    vehicleDepotId: string | null,
+  ): Promise<void> {
+    await this.addToExistingRoute(routeId, packageId, originDepotId, destinationDepotId);
+    await this.reorderStops(routeId, vehicleDepotId);
+    logger.info('Package consolidated into existing route', {
+      routeId,
       packageId,
     });
   }

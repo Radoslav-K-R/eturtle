@@ -272,6 +272,21 @@ export class RouteRepository {
     );
   }
 
+  async findAllPendingForDate(routeDate: string): Promise<Route[]> {
+    const pool = getPool();
+    const result = await pool.query<Route>(
+      `SELECT id, vehicle_id AS "vehicleId", driver_id AS "driverId",
+              route_date AS "routeDate", status,
+              approved_by_user_id AS "approvedByUserId",
+              approved_at AS "approvedAt",
+              created_at AS "createdAt", updated_at AS "updatedAt"
+       FROM routes
+       WHERE route_date = $1 AND status = 'pending'`,
+      [routeDate],
+    );
+    return result.rows;
+  }
+
   async findByVehicleAndDate(vehicleId: string, routeDate: string): Promise<Route | null> {
     const pool = getPool();
     const result = await pool.query<Route>(

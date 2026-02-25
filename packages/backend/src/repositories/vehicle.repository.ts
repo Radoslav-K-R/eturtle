@@ -208,15 +208,45 @@ export class VehicleRepository {
   async findAvailableAtDepot(depotId: string): Promise<Vehicle[]> {
     const pool = getPool();
     const result = await pool.query<Vehicle>(
+      `SELECT v.id, v.license_plate AS "licensePlate", v.type,
+              v.weight_capacity_kg AS "weightCapacityKg",
+              v.volume_capacity_cbm AS "volumeCapacityCbm",
+              v.current_depot_id AS "currentDepotId",
+              v.status, v.created_at AS "createdAt", v.updated_at AS "updatedAt"
+       FROM vehicles v
+       INNER JOIN users u ON u.vehicle_id = v.id AND u.is_active = TRUE
+       WHERE v.current_depot_id = $1 AND v.status = 'available'`,
+      [depotId],
+    );
+    return result.rows;
+  }
+
+  async findAllAvailableWithDrivers(): Promise<Vehicle[]> {
+    const pool = getPool();
+    const result = await pool.query<Vehicle>(
+      `SELECT v.id, v.license_plate AS "licensePlate", v.type,
+              v.weight_capacity_kg AS "weightCapacityKg",
+              v.volume_capacity_cbm AS "volumeCapacityCbm",
+              v.current_depot_id AS "currentDepotId",
+              v.status, v.created_at AS "createdAt", v.updated_at AS "updatedAt"
+       FROM vehicles v
+       INNER JOIN users u ON u.vehicle_id = v.id AND u.is_active = TRUE
+       WHERE v.status = 'available'`,
+    );
+    return result.rows;
+  }
+
+  async findRawById(id: string): Promise<Vehicle | null> {
+    const pool = getPool();
+    const result = await pool.query<Vehicle>(
       `SELECT id, license_plate AS "licensePlate", type,
               weight_capacity_kg AS "weightCapacityKg",
               volume_capacity_cbm AS "volumeCapacityCbm",
               current_depot_id AS "currentDepotId",
               status, created_at AS "createdAt", updated_at AS "updatedAt"
-       FROM vehicles
-       WHERE current_depot_id = $1 AND status = 'available'`,
-      [depotId],
+       FROM vehicles WHERE id = $1`,
+      [id],
     );
-    return result.rows;
+    return result.rows[0] ?? null;
   }
 }

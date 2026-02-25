@@ -3,8 +3,9 @@ import { PackageRepository } from '../repositories/package.repository.js';
 import { RouteRepository } from '../repositories/route.repository.js';
 import { DeliveryWithDetails, CreateDeliveryRequest } from '../models/delivery.model.js';
 import { AppError } from '../middleware/error-handler.js';
-import { PAGINATION_DEFAULTS, PACKAGE_STATUSES } from '../config/constants.js';
+import { PAGINATION_DEFAULTS, PACKAGE_STATUSES, TERMINAL_PACKAGE_STATUSES, VEHICLE_STATUSES } from '../config/constants.js';
 import { getPool } from '../config/database.js';
+import { logger } from '../utils/logger.js';
 
 const HTTP_NOT_FOUND = 404;
 const HTTP_BAD_REQUEST = 400;
@@ -103,7 +104,40 @@ export class DeliveryService {
       request.note ?? 'Package delivered',
     );
 
+    // Check if all packages on this route are delivered/terminal
+    await this.completeRouteIfAllDelivered(routeId, driverVehicleId);
+
     const result = await this.deliveryRepository.findById(delivery.id);
     return result!;
+  }
+
+  private async completeRouteIfAllDelivered(
+    routeId: string,
+    vehicleId: string,
+  ): Promise<void> {
+    const packageIds = await this.routeRepository.getPackageIdsForRoute(routeId);
+    if (packageIds.length === 0) {
+      return;
+    }
+
+    for (const packageId of packageIds) {
+      const pkg = await this.packageRepository.getRawById(packageId);
+      if (pkg && !TERMINAL_PACKAGE_STATUSES.has(pkg.currentStatus)) {
+        return; // At least one package still pending
+      }
+    }
+
+    // All packages delivered — complete the route and release the vehicle
+    const pool = getPool();
+    await pool.query(
+      `UPDATE routes SET status = 'completed', updated_at = NOW() WHERE id = $1`,
+      [routeId],
+    );
+    await pool.query(
+      `UPDATE vehicles SET status = $1, updated_at = NOW() WHERE id = $2`,
+      [VEHICLE_STATUSES.AVAILABLE, vehicleId],
+    );
+
+    logger.info('Route completed, vehicle released', { routeId, vehicleId });
   }
 }
