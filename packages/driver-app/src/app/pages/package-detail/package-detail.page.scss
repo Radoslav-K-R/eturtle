@@ -1,8 +1,123 @@
-.success-text {
-  text-align: center;
-  font-weight: 500;
+.detail-content {
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-ion-button {
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.info-section {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 12px;
+  padding: 4px 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.info-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--ion-color-primary);
+  }
+}
+
+.info-value {
+  font-size: 15px;
+  font-weight: 500;
+  padding-left: 22px;
+}
+
+.delivery-section {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+}
+
+.form-item {
+  --border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.deliver-btn {
   margin-top: 16px;
+  --border-radius: 10px;
+  font-weight: 600;
+}
+
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  background: var(--ion-color-success);
+  color: #ffffff;
+  border-radius: 12px;
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50%;
+  gap: 12px;
+  color: var(--ion-color-medium);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50%;
+  text-align: center;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    color: var(--ion-color-primary);
+  }
 }

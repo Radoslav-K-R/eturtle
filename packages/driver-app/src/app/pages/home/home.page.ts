@@ -1,22 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { NgIf, NgFor } from '@angular/common';
+import { NgIf, NgFor, UpperCasePipe } from '@angular/common';
 import {
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
   IonCard,
-  IonCardHeader,
-  IonCardTitle,
   IonCardContent,
-  IonList,
-  IonItem,
-  IonLabel,
   IonBadge,
   IonRefresher,
   IonRefresherContent,
-  IonNote,
+  IonIcon,
+  IonSpinner,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { carOutline } from 'ionicons/icons';
 import { RefresherCustomEvent } from '@ionic/angular';
 import { DriverService } from '../../core/services/driver.service';
 import { DriverRoute } from '../../models/route.model';
@@ -32,18 +30,15 @@ import { DriverRoute } from '../../models/route.model';
     IonTitle,
     IonContent,
     IonCard,
-    IonCardHeader,
-    IonCardTitle,
     IonCardContent,
-    IonList,
-    IonItem,
-    IonLabel,
     IonBadge,
     IonRefresher,
     IonRefresherContent,
-    IonNote,
+    IonIcon,
+    IonSpinner,
     NgIf,
     NgFor,
+    UpperCasePipe,
   ],
 })
 export class HomePage implements OnInit {
@@ -51,7 +46,9 @@ export class HomePage implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  constructor(private driverService: DriverService) {}
+  constructor(private driverService: DriverService) {
+    addIcons({ carOutline });
+  }
 
   ngOnInit(): void {
     this.loadRoute();

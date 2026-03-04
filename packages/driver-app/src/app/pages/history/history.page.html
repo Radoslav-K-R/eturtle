@@ -8,23 +8,31 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <div *ngIf="isLoading" class="ion-padding ion-text-center">
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
     <p>Loading history...</p>
   </div>
 
-  <div *ngIf="!isLoading && deliveries.length === 0" class="ion-padding ion-text-center">
+  <div *ngIf="!isLoading && deliveries.length === 0" class="empty-state">
+    <ion-icon name="time-outline" class="empty-icon"></ion-icon>
     <h3>No Deliveries</h3>
     <p>You haven't completed any deliveries yet.</p>
   </div>
 
-  <ion-list *ngIf="!isLoading && deliveries.length > 0">
-    <ion-item *ngFor="let delivery of deliveries">
-      <ion-label>
-        <h2>{{ delivery.trackingNumber }}</h2>
-        <p>{{ delivery.destinationAddress }}</p>
-        <p>Recipient: {{ delivery.recipientName }}</p>
-      </ion-label>
-      <ion-note slot="end">{{ delivery.deliveredAt | date:'short' }}</ion-note>
-    </ion-item>
-  </ion-list>
+  <div *ngIf="!isLoading && deliveries.length > 0" class="history-list">
+    <div class="history-card" *ngFor="let delivery of deliveries">
+      <div class="history-header">
+        <span class="tracking-number">{{ delivery.trackingNumber }}</span>
+        <span class="delivery-time">{{ delivery.deliveredAt | date:'short' }}</span>
+      </div>
+      <div class="history-detail">
+        <ion-icon name="location-outline"></ion-icon>
+        <span>{{ delivery.destinationAddress }}</span>
+      </div>
+      <div class="history-detail">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>{{ delivery.recipientName }}</span>
+      </div>
+    </div>
+  </div>
 </ion-content>

@@ -3,15 +3,15 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { NgIf } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
   IonItem,
   IonInput,
   IonButton,
   IonText,
+  IonIcon,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { busOutline } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -20,14 +20,12 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrls: ['./login.page.scss'],
   standalone: true,
   imports: [
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonItem,
     IonInput,
     IonButton,
     IonText,
+    IonIcon,
     ReactiveFormsModule,
     NgIf,
   ],
@@ -42,6 +40,7 @@ export class LoginPage {
     private authService: AuthService,
     private router: Router,
   ) {
+    addIcons({ busOutline });
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]],

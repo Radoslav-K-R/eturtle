@@ -1,5 +1,174 @@
-ion-card-header {
-  ion-card-title {
-    font-weight: bold;
+.route-content {
+  padding: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  &.accent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vehicle-card {
+  margin: 0 0 16px;
+  border-radius: 12px;
+
+  ion-card-content {
+    padding: 16px;
+  }
+}
+
+.vehicle-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vehicle-icon {
+  font-size: 32px;
+  color: var(--ion-color-primary);
+}
+
+.vehicle-plate {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.vehicle-date {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.section-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--ion-text-color);
+}
+
+.stops-timeline {
+  padding-left: 4px;
+}
+
+.stop-item {
+  display: flex;
+  gap: 12px;
+  min-height: 60px;
+}
+
+.stop-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.stop-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ion-color-light-shade);
+  color: var(--ion-text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+
+  &.visited {
+    background: var(--ion-color-success);
+    color: #ffffff;
+  }
+}
+
+.stop-line {
+  width: 2px;
+  flex: 1;
+  background: var(--ion-color-light-shade);
+  min-height: 16px;
+}
+
+.stop-details {
+  flex: 1;
+  padding-bottom: 16px;
+}
+
+.stop-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.stop-address {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.stop-badge {
+  margin-top: 4px;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50%;
+  gap: 12px;
+  color: var(--ion-color-medium);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50%;
+  text-align: center;
+  padding: 24px;
+  color: var(--ion-color-medium);
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    color: var(--ion-color-primary);
+  }
+
+  h3 {
+    margin-bottom: 8px;
+    color: var(--ion-text-color);
   }
 }

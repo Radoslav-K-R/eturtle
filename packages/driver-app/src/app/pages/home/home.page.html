@@ -8,55 +8,64 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <div *ngIf="isLoading" class="ion-padding ion-text-center">
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
     <p>Loading route...</p>
   </div>
 
-  <div *ngIf="!isLoading && !route" class="ion-padding ion-text-center">
+  <div *ngIf="!isLoading && !route" class="empty-state">
+    <ion-icon name="car-outline" class="empty-icon"></ion-icon>
     <h3>No Route Assigned</h3>
     <p>You don't have a route scheduled for today.</p>
   </div>
 
-  <div *ngIf="route">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Route Summary</ion-card-title>
-      </ion-card-header>
+  <div *ngIf="route" class="route-content">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ route.packages.length }}</div>
+        <div class="stat-label">Packages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ route.stops.length }}</div>
+        <div class="stat-label">Stops</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ getPackageCountByStatus('delivered') }}</div>
+        <div class="stat-label">Delivered</div>
+      </div>
+      <div class="stat-card accent">
+        <ion-badge [color]="getStatusColor(route.status)">{{ route.status | uppercase }}</ion-badge>
+        <div class="stat-label">Status</div>
+      </div>
+    </div>
+
+    <ion-card class="vehicle-card">
       <ion-card-content>
-        <ion-item>
-          <ion-label>Vehicle</ion-label>
-          <ion-note slot="end">{{ route.vehicleLicensePlate }}</ion-note>
-        </ion-item>
-        <ion-item>
-          <ion-label>Status</ion-label>
-          <ion-badge slot="end" [color]="getStatusColor(route.status)">{{ route.status }}</ion-badge>
-        </ion-item>
-        <ion-item>
-          <ion-label>Packages</ion-label>
-          <ion-note slot="end">{{ route.packages.length }}</ion-note>
-        </ion-item>
-        <ion-item>
-          <ion-label>Stops</ion-label>
-          <ion-note slot="end">{{ route.stops.length }}</ion-note>
-        </ion-item>
+        <div class="vehicle-info">
+          <ion-icon name="car-outline" class="vehicle-icon"></ion-icon>
+          <div>
+            <div class="vehicle-plate">{{ route.vehicleLicensePlate }}</div>
+            <div class="vehicle-date">{{ route.scheduledDate }}</div>
+          </div>
+        </div>
       </ion-card-content>
     </ion-card>
 
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Stops</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-list>
-          <ion-item *ngFor="let stop of route.stops">
-            <ion-label>
-              <h3>{{ stop.stopOrder }}. {{ stop.depotName }}</h3>
-              <p>{{ stop.depotAddress }}</p>
-            </ion-label>
-            <ion-badge slot="end" *ngIf="stop.arrivedAt" color="success">Visited</ion-badge>
-          </ion-item>
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
+    <div class="section-header">
+      <h3>Route Stops</h3>
+    </div>
+    <div class="stops-timeline">
+      <div class="stop-item" *ngFor="let stop of route.stops; let last = last">
+        <div class="stop-indicator">
+          <div class="stop-number" [class.visited]="stop.arrivedAt">{{ stop.stopOrder }}</div>
+          <div class="stop-line" *ngIf="!last"></div>
+        </div>
+        <div class="stop-details">
+          <div class="stop-name">{{ stop.depotName }}</div>
+          <div class="stop-address">{{ stop.depotAddress }}</div>
+          <ion-badge *ngIf="stop.arrivedAt" color="success" class="stop-badge">Visited</ion-badge>
+        </div>
+      </div>
+    </div>
   </div>
 </ion-content>

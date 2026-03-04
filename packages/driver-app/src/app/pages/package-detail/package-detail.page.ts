@@ -7,21 +7,25 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
   IonItem,
-  IonLabel,
   IonInput,
   IonTextarea,
   IonButton,
   IonBadge,
   IonBackButton,
   IonButtons,
-  IonText,
-  IonNote,
+  IonIcon,
+  IonSpinner,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  arrowUpCircleOutline,
+  arrowDownCircleOutline,
+  scaleOutline,
+  checkmarkCircleOutline,
+  checkmarkCircle,
+  alertCircleOutline,
+} from 'ionicons/icons';
 import { DriverService } from '../../core/services/driver.service';
 import { RoutePackage } from '../../models/route.model';
 import { DeliveryConfirmation } from '../../models/delivery.model';
@@ -36,20 +40,15 @@ import { DeliveryConfirmation } from '../../models/delivery.model';
     IonToolbar,
     IonTitle,
     IonContent,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
     IonItem,
-    IonLabel,
     IonInput,
     IonTextarea,
     IonButton,
     IonBadge,
     IonBackButton,
     IonButtons,
-    IonText,
-    IonNote,
+    IonIcon,
+    IonSpinner,
     NgIf,
     ReactiveFormsModule,
   ],
@@ -66,6 +65,14 @@ export class PackageDetailPage implements OnInit {
     private driverService: DriverService,
     private fb: FormBuilder,
   ) {
+    addIcons({
+      arrowUpCircleOutline,
+      arrowDownCircleOutline,
+      scaleOutline,
+      checkmarkCircleOutline,
+      checkmarkCircle,
+      alertCircleOutline,
+    });
     this.deliveryForm = this.fb.group({
       recipientName: ['', [Validators.required]],
       notes: [''],
@@ -102,7 +109,7 @@ export class PackageDetailPage implements OnInit {
 
     const confirmation: DeliveryConfirmation = {
       recipientName: this.deliveryForm.value.recipientName as string,
-      notes: this.deliveryForm.value.notes as string || undefined,
+      notes: (this.deliveryForm.value.notes as string) || undefined,
     };
 
     this.driverService.confirmDelivery(this.package.id, confirmation).subscribe({

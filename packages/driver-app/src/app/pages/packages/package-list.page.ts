@@ -6,13 +6,14 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
   IonBadge,
+  IonIcon,
   IonRefresher,
   IonRefresherContent,
+  IonSpinner,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { locationOutline, cubeOutline } from 'ionicons/icons';
 import { RefresherCustomEvent } from '@ionic/angular';
 import { DriverService } from '../../core/services/driver.service';
 import { RoutePackage } from '../../models/route.model';
@@ -27,12 +28,11 @@ import { RoutePackage } from '../../models/route.model';
     IonToolbar,
     IonTitle,
     IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
     IonBadge,
+    IonIcon,
     IonRefresher,
     IonRefresherContent,
+    IonSpinner,
     NgIf,
     NgFor,
     RouterLink,
@@ -42,7 +42,9 @@ export class PackageListPage implements OnInit {
   packages: RoutePackage[] = [];
   isLoading = false;
 
-  constructor(private driverService: DriverService) {}
+  constructor(private driverService: DriverService) {
+    addIcons({ locationOutline, cubeOutline });
+  }
 
   ngOnInit(): void {
     this.loadPackages();

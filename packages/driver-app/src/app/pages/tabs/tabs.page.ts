@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { homeOutline, cubeOutline, timeOutline } from 'ionicons/icons';
+import { homeOutline, cubeOutline, timeOutline, mapOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-tabs',
@@ -13,6 +13,10 @@ import { homeOutline, cubeOutline, timeOutline } from 'ionicons/icons';
         <ion-tab-button tab="home">
           <ion-icon name="home-outline"></ion-icon>
           <ion-label>Home</ion-label>
+        </ion-tab-button>
+        <ion-tab-button tab="map">
+          <ion-icon name="map-outline"></ion-icon>
+          <ion-label>Map</ion-label>
         </ion-tab-button>
         <ion-tab-button tab="packages">
           <ion-icon name="cube-outline"></ion-icon>
@@ -28,6 +32,6 @@ import { homeOutline, cubeOutline, timeOutline } from 'ionicons/icons';
 })
 export class TabsPage {
   constructor() {
-    addIcons({ homeOutline, cubeOutline, timeOutline });
+    addIcons({ homeOutline, mapOutline, cubeOutline, timeOutline });
   }
 }

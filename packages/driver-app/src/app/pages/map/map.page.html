@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Route Map</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Loading route...</p>
+  </div>
+
+  <div *ngIf="!isLoading && !route" class="empty-state">
+    <ion-icon name="navigate-outline" class="empty-icon"></ion-icon>
+    <h3>No Route Assigned</h3>
+    <p>You don't have a route scheduled for today.</p>
+  </div>
+
+  <div *ngIf="route" class="map-wrapper">
+    <div class="map-stats">
+      <ion-chip color="primary">
+        <ion-icon name="location-outline"></ion-icon>
+        <ion-label>{{ route.stops.length }} Stops</ion-label>
+      </ion-chip>
+      <ion-chip color="secondary">
+        <ion-icon name="cube-outline"></ion-icon>
+        <ion-label>{{ deliveredCount }}/{{ totalPackages }} Delivered</ion-label>
+      </ion-chip>
+    </div>
+    <div #mapContainer class="map-container"></div>
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-dot stop-dot"></span>
+        <span>Depot Stop</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot delivery-dot"></span>
+        <span>Delivery</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot delivered-dot"></span>
+        <span>Delivered</span>
+      </div>
+    </div>
+  </div>
+</ion-content>
