@@ -24,5 +24,6 @@ Thumbs.db
 
 # Gas Town (added by gt)
 .runtime/
+.beads/
 .claude/commands/
 .logs/
