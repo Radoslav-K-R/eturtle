@@ -11,6 +11,8 @@ export interface RouteStop {
   id: string;
   depotName: string;
   depotAddress: string;
+  latitude: number | null;
+  longitude: number | null;
   stopOrder: number;
   arrivedAt: string | null;
   departedAt: string | null;
@@ -22,6 +24,8 @@ export interface RoutePackage {
   status: string;
   originAddress: string;
   destinationAddress: string;
+  destinationLatitude: number | null;
+  destinationLongitude: number | null;
   weightKg: number;
   pickupStopId: string;
   dropoffStopId: string;

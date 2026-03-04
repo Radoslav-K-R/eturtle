@@ -5,13 +5,13 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonNote,
+  IonIcon,
   IonRefresher,
   IonRefresherContent,
+  IonSpinner,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { locationOutline, personOutline, timeOutline } from 'ionicons/icons';
 import { RefresherCustomEvent } from '@ionic/angular';
 import { DriverService } from '../../core/services/driver.service';
 import { DeliveryRecord } from '../../models/delivery.model';
@@ -26,12 +26,10 @@ import { DeliveryRecord } from '../../models/delivery.model';
     IonToolbar,
     IonTitle,
     IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonNote,
+    IonIcon,
     IonRefresher,
     IonRefresherContent,
+    IonSpinner,
     NgIf,
     NgFor,
     DatePipe,
@@ -41,7 +39,9 @@ export class HistoryPage implements OnInit {
   deliveries: DeliveryRecord[] = [];
   isLoading = false;
 
-  constructor(private driverService: DriverService) {}
+  constructor(private driverService: DriverService) {
+    addIcons({ locationOutline, personOutline, timeOutline });
+  }
 
   ngOnInit(): void {
     this.loadHistory();

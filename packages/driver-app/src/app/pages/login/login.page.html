@@ -1,22 +1,23 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>eTurtle Driver</ion-title>
-  </ion-toolbar>
-</ion-header>
-<ion-content class="ion-padding">
+<ion-content class="login-content">
   <div class="login-container">
-    <h2>Driver Login</h2>
+    <div class="login-brand">
+      <div class="brand-icon">
+        <ion-icon name="bus-outline"></ion-icon>
+      </div>
+      <h1>eTurtle</h1>
+      <p>Driver App</p>
+    </div>
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <ion-item>
-        <ion-input label="Email" type="email" formControlName="email" placeholder="Enter email"></ion-input>
+      <ion-item class="form-item">
+        <ion-input label="Email" type="email" formControlName="email" placeholder="Enter email" labelPlacement="floating"></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Password" type="password" formControlName="password" placeholder="Enter password"></ion-input>
+      <ion-item class="form-item">
+        <ion-input label="Password" type="password" formControlName="password" placeholder="Enter password" labelPlacement="floating"></ion-input>
       </ion-item>
       <ion-text color="danger" *ngIf="errorMessage">
         <p class="error-text">{{ errorMessage }}</p>
       </ion-text>
-      <ion-button expand="block" type="submit" [disabled]="loginForm.invalid || isLoading">
+      <ion-button expand="block" type="submit" [disabled]="loginForm.invalid || isLoading" class="login-btn">
         {{ isLoading ? 'Logging in...' : 'Login' }}
       </ion-button>
     </form>
